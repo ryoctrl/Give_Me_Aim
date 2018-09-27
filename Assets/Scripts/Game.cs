@@ -15,10 +15,14 @@ public class Game : MonoBehaviour {
 	private int score;
 	///HP。Targetを逃すと1減る。
 	private int health;
+	//クリックした回数
+	private int shots;
 	///タイマー。
 	private float timer;
 	/// タイマー表示用のTextField
-	public Text timerText;
+	private Text timerText;
+	/// health表示用のTextField
+	private Text healthText;
 	///的のプレハブ用変数
 	public GameObject targetPrefab;
 	///前回の的出現からの経過時間
@@ -34,6 +38,7 @@ public class Game : MonoBehaviour {
 	///リザルト表示用TextObjects（Sceneを分けたくなかったため用意)
 	private Text totalTimeText;
 	private Text scoreText;
+	private Text accuracyText;
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
 
@@ -46,6 +51,8 @@ public class Game : MonoBehaviour {
 		startButton = GameObject.Find("StartButton").GetComponent<Button>();
 		totalTimeText = GameObject.Find("TotalTime").GetComponent<Text>();
 		scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
+		healthText = GameObject.Find("HealthText").GetComponent<Text>();
+		accuracyText = GameObject.Find("AccuracyText").GetComponent<Text>();
 		Game.gameInstance = this;
 	}
 
@@ -63,6 +70,7 @@ public class Game : MonoBehaviour {
 
 	private void mouseProcess() {
 		if(Input.GetMouseButtonDown(0)){
+			shots++;
 			Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			RaycastHit2D hit = Physics2D.Raycast(mousePos, new Vector3(0, 0, 1), 100);
 			if(hit.collider == null) return;
@@ -79,9 +87,20 @@ public class Game : MonoBehaviour {
 		health = 3;
 		timer = 0;
 		interval = 1;
+		shots = 0;
 		timerText.enabled = true;
+		healthText.enabled = true;
 		totalTimeText.text = "";
 		scoreText.text = "";
+		accuracyText.text = "";
+		healthText.text = generateHealthText();
+	}
+
+	private string generateHealthText() {
+		string healthText = "";
+		for(int i = 0; i < health; i++) healthText += "☆";
+		return "Health " + healthText;
+		
 	}
 
 	///
@@ -122,12 +141,15 @@ public class Game : MonoBehaviour {
 	///
 	public void miss() {
 		health--;
+		healthText.text = generateHealthText();
 		if(health == 0) {
 			started = false;
 			foreach(GameObject target in targets) {
 				Destroy(target);
 			}
 			timerText.enabled = false;
+			healthText.enabled = false;
+			accuracyText.text = "Accuracy: " + ((double)score / shots * 100).ToString("F1") + "%";
 			totalTimeText.text = "Tortal time: " + timer.ToString("F2");
 			scoreText.text = "Targets hit: " + score.ToString();
 			startButton.gameObject.SetActive(true);
