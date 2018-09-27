@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4006845534219700}
   - component: {fileID: 212118881833868352}
   - component: {fileID: 58844323069114844}
-  - component: {fileID: 114309722564936138}
   m_Layer: 8
   m_Name: High
   m_TagString: Untagged
@@ -39,7 +38,6 @@ GameObject:
   - component: {fileID: 4598771315392612}
   - component: {fileID: 212471769946490450}
   - component: {fileID: 58965444281796550}
-  - component: {fileID: 114894052498815674}
   m_Layer: 10
   m_Name: Low
   m_TagString: Untagged
@@ -73,7 +71,6 @@ GameObject:
   - component: {fileID: 4528975425209278}
   - component: {fileID: 212209084895321252}
   - component: {fileID: 58205995268433354}
-  - component: {fileID: 114171733912841486}
   m_Layer: 9
   m_Name: Midium
   m_TagString: Untagged
@@ -165,39 +162,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &114171733912841486
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1918562907710926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be13e0de6ab1a1745b5351fd7b7007e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114309722564936138
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1046805399112036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be13e0de6ab1a1745b5351fd7b7007e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114894052498815674
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1165341609492312}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be13e0de6ab1a1745b5351fd7b7007e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114914934835335482
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -365,6 +329,6 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.46, y: -0.14}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}

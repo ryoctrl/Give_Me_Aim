@@ -23,10 +23,12 @@ public class Target : MonoBehaviour {
 	///的生成時に一度のみ呼ばれる処理。
 	///GameObjectを初期化する。
 	void Start () {
+		// Debug.Log(transform.lossyScale);
 		Vector3 initialScale = new Vector3();
 		initialScale.x = 0;
 		initialScale.y = 0;
 		transform.localScale = initialScale;
+		// Debug.Log(transform.lossyScale);
 		foreach(Transform child in transform) {
 			if(child.name == "High") high = child.gameObject;
 			else if(child.name == "Midium") midium = child.gameObject;

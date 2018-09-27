@@ -9,6 +9,8 @@ using UnityEngine.UI;
 public class Game : MonoBehaviour {
 	/// TargetやSpriteから処理を以上するためのStatic変数。
 	public static Game gameInstance = null;
+	private const int width = 8;
+	private const int height = 4;
 	///TargetをHitした回数
 	private int score;
 	///HP。Targetを逃すと1減る。
@@ -52,9 +54,21 @@ public class Game : MonoBehaviour {
 	///
 	void Update () {
 		if(Input.GetKeyDown(KeyCode.Space)) Debug.Break();
+		mouseProcess();
 		if(!started) return;
 		generateTarget();
 		updateTimer();
+		
+	}
+
+	private void mouseProcess() {
+		if(Input.GetMouseButtonDown(0)){
+			Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			RaycastHit2D hit = Physics2D.Raycast(mousePos, new Vector3(0, 0, 1), 100);
+			if(hit.collider == null) return;
+			GameObject target = hit.collider.transform.parent.gameObject;
+			hitTarget(target);
+		}
 	}
 
 	///
@@ -68,9 +82,7 @@ public class Game : MonoBehaviour {
 		timerText.enabled = true;
 		totalTimeText.text = "";
 		scoreText.text = "";
-
 	}
-
 
 	///
 	/// 的を生成する処理
@@ -102,9 +114,6 @@ public class Game : MonoBehaviour {
 	/// 的を出現させるランダム位置を作成
 	///
 	private Vector3 getRandomPos() {
-		float width = 8;
-		float height = 4;
-
 		return new Vector3(Random.Range(-width, width), Random.Range(-height, height), 0);
 	}
 
@@ -126,9 +135,10 @@ public class Game : MonoBehaviour {
 	}
 
 	///
-	/// 的をクリックした時の処理(SpriteClickから呼び出し)
+	/// 的をクリックした時の処理
 	///
-	public void hit() {
+	private void hitTarget(GameObject target) {
+		Destroy(target);
 		score++;
 	}
 
