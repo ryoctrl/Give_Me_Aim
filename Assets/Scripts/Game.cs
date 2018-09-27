@@ -98,7 +98,7 @@ public class Game : MonoBehaviour {
 
 	private string generateHealthText() {
 		string healthText = "";
-		for(int i = 0; i < health; i++) healthText += "☆";
+		for(int i = 0; i < health; i++) healthText += "!";
 		return "Health " + healthText;
 		
 	}
