@@ -23,10 +23,7 @@ public class Target : MonoBehaviour {
 	///的生成時に一度のみ呼ばれる処理。
 	///GameObjectを初期化する。
 	void Start () {
-		Vector3 initialScale = new Vector3();
-		initialScale.x = 0;
-		initialScale.y = 0;
-		transform.localScale = initialScale;
+		transform.localScale = new Vector3();
 		foreach(Transform child in transform) {
 			if(child.name == "High") high = child.gameObject;
 			else if(child.name == "Midium") midium = child.gameObject;
@@ -37,16 +34,15 @@ public class Target : MonoBehaviour {
 		Vector2 midiumSize = new Vector2();
 		Vector2 lowSize = new Vector2();
 
-		float scale = 150;
+		RectTransform rt = GetComponent<RectTransform>();
 
-		highSize.x = GetComponent<RectTransform>().sizeDelta.x / 10 * 2 / scale;
-		highSize.y = GetComponent<RectTransform>().sizeDelta.y / 10 * 2 / scale;
+		float scale = 100;
 
-		midiumSize.x = GetComponent<RectTransform>().sizeDelta.x / 10 * 6 / scale;
-		midiumSize.y = GetComponent<RectTransform>().sizeDelta.y / 10 * 6 / scale;
+		highSize.x = rt.sizeDelta.x / 10 * 2 / scale;
+		highSize.y = rt.sizeDelta.y / 10 * 2 / scale;
 
-		lowSize.x = GetComponent<RectTransform>().sizeDelta.x / 10 * 10 / scale;
-		lowSize.y = GetComponent<RectTransform>().sizeDelta.y / 10 * 10 / scale;
+		midiumSize = highSize * 2;
+		lowSize = highSize * 3;
 
 		high.transform.localScale = highSize;
 		midium.transform.localScale = midiumSize;
