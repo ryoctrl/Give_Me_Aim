@@ -48,6 +48,8 @@ public class Game : MonoBehaviour {
 	private AudioSource hitSound;
 	private VideoPlayer videoPlayer;
 	private TimingCreater tc;
+	private List<Vector3> hitPositions = new List<Vector3>();
+	private GameObject resultTarget;
 
 	///
 	/// ゲーム起動時に一度だけ呼ばれる処理.
@@ -127,8 +129,7 @@ public class Game : MonoBehaviour {
 			Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 			RaycastHit2D hit = Physics2D.Raycast(mousePos, new Vector3(0, 0, 1), 100);
 			if(hit.collider == null) return;
-			GameObject target = hit.collider.transform.parent.gameObject;
-			hitTarget(target);
+			hitTarget(hit);
 		}
 	}
 
@@ -136,6 +137,10 @@ public class Game : MonoBehaviour {
 	/// ゲーム中に使う変数群を初期化
 	///
 	private void gameInitialize() {
+		if(resultTarget != null) {
+			Destroy(resultTarget);
+			resultTarget = null;
+		}
 		score = 0;
 		health = 300;
 		timer = 0;
@@ -147,6 +152,7 @@ public class Game : MonoBehaviour {
 		scoreText.text = "";
 		accuracyText.text = "";
 		healthText.text = generateHealthText();
+		
 	}
 
 	private string generateHealthText() {
@@ -200,6 +206,8 @@ public class Game : MonoBehaviour {
 			foreach(GameObject target in targets) {
 				Destroy(target);
 			}
+			resultTarget = Instantiate(targetPrefab, new Vector3(0, -1, 0), Quaternion.identity);
+			resultTarget.GetComponent<Target>().changeModeToResultTarget(hitPositions);
 			timerText.enabled = false;
 			healthText.enabled = false;
 			accuracyText.text = "Accuracy: " + ((double)score / shots * 100).ToString("F1") + "%";
@@ -212,7 +220,10 @@ public class Game : MonoBehaviour {
 	///
 	/// 的をクリックした時の処理
 	///
-	private void hitTarget(GameObject target) {
+	private void hitTarget(RaycastHit2D hit) {
+		GameObject target = hit.collider.transform.parent.gameObject;
+		Vector3 hitPosition = target.transform.InverseTransformPoint(hit.point);
+		hitPositions.Add(hitPosition);
 		Destroy(target);
 		hitSound.Play();
 		score++;

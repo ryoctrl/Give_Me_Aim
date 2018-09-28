@@ -17,9 +17,17 @@ public class Target : MonoBehaviour {
 	private GameObject low;
 	/// 最大サイズに達して縮むべきか否かのフラグ
 	private bool isMaxSized = false;
+	//リザルト画面用のターゲットか否か
+	private bool isResultTarget = false;
+	public GameObject hitPrefab;
+	private List<Vector3> hitPositions;
+
+
 	/// 的の大きさが変化する速度
 	private float speed = 0.0175f;
 
+	//private float speed = 0.03f;
+	
 	///的生成時に一度のみ呼ばれる処理。
 	///GameObjectを初期化する。
 	void Start () {
@@ -47,13 +55,15 @@ public class Target : MonoBehaviour {
 		high.transform.localScale = highSize;
 		midium.transform.localScale = midiumSize;
 		low.transform.localScale = lowSize;
+		if(isResultTarget) changeModeToResultTarget(hitPositions);
 	}
 
 	/// 毎フレーム呼ばれる的への処理。
 	/// おおきさが変わったりする
 	void Update () {
+		if(isMaxSized && isResultTarget) return;
 		Vector3 ls = transform.localScale;
-		if(isMaxSized) {
+		if(isMaxSized && !isResultTarget) {
 			ls.x -= speed;
 			ls.y -= speed;
 		} else {
@@ -66,6 +76,24 @@ public class Target : MonoBehaviour {
 		else if(ls.x < 0.0f) {
 			Destroy(high.transform.parent.gameObject);
 			Game.gameInstance.miss();
+		}
+	}
+
+	public void changeModeToResultTarget(List<Vector3> hitPositions) {
+		isResultTarget = true;
+		this.hitPositions = hitPositions;
+		Vector3 ls = GetComponent<RectTransform>().localScale;
+		ls.x += 4f;
+		ls.y += 4f;
+		GetComponent<RectTransform>().localScale = ls;
+		Vector3 hitWorldPosition;
+		GameObject hit;
+		int orderInLayer = 4;
+		foreach(Vector3 hitPosition in hitPositions) {
+			hitWorldPosition = transform.TransformPoint(hitPosition);
+			hit = Instantiate(hitPrefab, hitWorldPosition, Quaternion.identity);
+			hit.GetComponent<SpriteRenderer>().sortingOrder = orderInLayer;
+			hit.transform.parent = transform;
 		}
 	}
 }
