@@ -50,6 +50,7 @@ public class Game : MonoBehaviour {
 	private TimingCreater tc;
 	private List<Vector3> hitPositions = new List<Vector3>();
 	private GameObject resultTarget;
+	private GameObject menuCanvas;
 
 	private float otogeInterval = 1.45f;
 
@@ -67,6 +68,8 @@ public class Game : MonoBehaviour {
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
+		menuCanvas = GameObject.Find("MenuCanvas");
+		menuCanvas.SetActive(false);
 		Game.gameInstance = this;
 	}
 
@@ -75,6 +78,7 @@ public class Game : MonoBehaviour {
 	///
 	private bool movieStarted = false;
 	void Update () {
+
 		mouseProcess();
 		modeListen();
 		if(!started) return;
@@ -106,6 +110,8 @@ public class Game : MonoBehaviour {
 			Debug.Log("Otoge Mode Activated!");
 		}else if(!started && Input.GetKeyDown(KeyCode.A)) {
 			autoMode = true;
+		}else if(Input.GetKeyDown(KeyCode.Escape)) {
+			menuCanvas.SetActive(!menuCanvas.active);
 		}
 	}
 	private List<float> timingList = new List<float>();
@@ -155,7 +161,6 @@ public class Game : MonoBehaviour {
 		scoreText.text = "";
 		accuracyText.text = "";
 		healthText.text = generateHealthText();
-		
 	}
 
 	private string generateHealthText() {

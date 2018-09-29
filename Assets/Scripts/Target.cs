@@ -21,13 +21,7 @@ public class Target : MonoBehaviour {
 	private bool isResultTarget = false;
 	public GameObject hitPrefab;
 	private List<Vector3> hitPositions;
-
-	///
-	private float debugTimer = 0;
 	private bool autoMode = false;
-	///
-
-
 	/// 的の大きさが変化する速度
 	private float speed = 0.0175f;
 
@@ -78,10 +72,8 @@ public class Target : MonoBehaviour {
 		}
 		
 		transform.localScale = ls;
-		debugTimer += Time.deltaTime;
 		if(ls.x >= 3f) {
 			if(autoMode && !isResultTarget) Game.gameInstance.autoTargetHit(this.transform.gameObject);
-			Debug.Log("TargetMaximized:" + debugTimer);
 			isMaxSized = true;
 		}
 		else if(ls.x < 0.0f) {
