@@ -23,7 +23,9 @@ public class Target : MonoBehaviour {
 	private List<Vector3> hitPositions;
 	private bool autoMode = false;
 	/// 的の大きさが変化する速度
-	private float speed = 0.0175f;
+	//private float speed = 0.0175f;
+	//private float speed = 0.012f;
+	//private float speed = ;
 
 	//private float speed = 0.03f;
 	
@@ -56,13 +58,15 @@ public class Target : MonoBehaviour {
 		low.transform.localScale = lowSize;
 		if(isResultTarget) changeModeToResultTarget(hitPositions);
 	}
+	private float speed;
 
 	/// 毎フレーム呼ばれる的への処理。
 	/// おおきさが変わったりする
 	void Update () {
-		if(isMaxSized && isResultTarget) return;
+		if(isMaxSized && isResultTarget || Game.gameInstance.isPausing()) return;
 
 		Vector3 ls = transform.localScale;
+		speed = Time.deltaTime;
 		if(isMaxSized && !isResultTarget) {
 			ls.x -= speed;
 			ls.y -= speed;
@@ -70,9 +74,9 @@ public class Target : MonoBehaviour {
 			ls.x += speed;
 			ls.y += speed;
 		}
-		
+	
 		transform.localScale = ls;
-		if(ls.x >= 3f) {
+		if(ls.x >= 2f) {
 			if(autoMode && !isResultTarget) Game.gameInstance.autoTargetHit(this.transform.gameObject);
 			isMaxSized = true;
 		}

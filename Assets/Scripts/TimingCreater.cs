@@ -16,7 +16,7 @@ public class TimingCreater : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(!start) return;
+		if(!start || Game.gameInstance.isPausing()) return;
 		timer += Time.deltaTime;
 		if(Input.GetKeyDown(KeyCode.T)) {
 			timingList.Add(timer);
@@ -33,7 +33,7 @@ public class TimingCreater : MonoBehaviour {
 	private void Save() {
 		StreamWriter sw;
 		FileInfo fi;
-		fi = new FileInfo(Application.dataPath + "/givemeegg.csv");
+		fi = new FileInfo(PlayerPrefs.GetString(Menu.SONG_KEY) + "/chart.txt");
 		sw = fi.AppendText();
 		foreach(float timing in timingList) {
 			sw.WriteLine(timing);
