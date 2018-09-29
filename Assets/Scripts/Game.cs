@@ -51,6 +51,8 @@ public class Game : MonoBehaviour {
 	private List<Vector3> hitPositions = new List<Vector3>();
 	private GameObject resultTarget;
 
+	private float otogeInterval = 1.45f;
+
 	///
 	/// ゲーム起動時に一度だけ呼ばれる処理.
 	/// GameObject変数を初期化しておく
@@ -64,7 +66,6 @@ public class Game : MonoBehaviour {
 		accuracyText = GameObject.Find("AccuracyText").GetComponent<Text>();
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
-		Debug.Log(videoPlayer.isLooping);
 		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
 		Game.gameInstance = this;
 	}
@@ -74,7 +75,6 @@ public class Game : MonoBehaviour {
 	///
 	private bool movieStarted = false;
 	void Update () {
-		if(Input.GetKeyDown(KeyCode.Space)) Debug.Break();
 		mouseProcess();
 		modeListen();
 		if(!started) return;
@@ -89,20 +89,23 @@ public class Game : MonoBehaviour {
 		if(!otogeMode) {
 			generateTarget();
 		} else if(otogeCount < timingList.Count){
-			if(timer > timingList[otogeCount] - 1.4) {
-				generateTarget();
+			if(timer > timingList[otogeCount] - otogeInterval) {
+				Target target = generateTarget();
+				if(autoMode && target != null) target.changeAutoMode();
 				otogeCount++;
 			} 
 		}
 		
 	}
 
+	private bool autoMode = false;
 	private void modeListen() {
 		if(!started && Input.GetKeyDown(KeyCode.M)) {
 			Read();
 			otogeMode = true;
 			Debug.Log("Otoge Mode Activated!");
-
+		}else if(!started && Input.GetKeyDown(KeyCode.A)) {
+			autoMode = true;
 		}
 	}
 	private List<float> timingList = new List<float>();
@@ -114,7 +117,6 @@ public class Game : MonoBehaviour {
 		try {
 			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
 				while((line = sr.ReadLine()) != null) {
-					//Debug.Log("Adding time to " + line);
 					timingList.Add(float.Parse(line));
 				}
 			}
@@ -142,7 +144,8 @@ public class Game : MonoBehaviour {
 			resultTarget = null;
 		}
 		score = 0;
-		health = 300;
+		if(otogeMode) health = 300;
+		else health = 3;
 		timer = 0;
 		interval = 1;
 		shots = 0;
@@ -162,11 +165,11 @@ public class Game : MonoBehaviour {
 	///
 	/// 的を生成する処理
 	///
-	private void generateTarget() {
-		if(!started) return;
+	private Target generateTarget() {
+		if(!started) return null;
 		if(!otogeMode) {
 			seconds += Time.deltaTime;
-			if(seconds < interval) return;
+			if(seconds < interval) return null;
 		}
 
 		newTarget = Instantiate(targetPrefab, getRandomPos(), Quaternion.identity);
@@ -175,6 +178,7 @@ public class Game : MonoBehaviour {
 			interval -= 0.1f;
 		}
 		seconds = 0;
+		return newTarget.GetComponent<Target>();
 	}
 
 	///
@@ -199,7 +203,6 @@ public class Game : MonoBehaviour {
 	///
 	public void miss() {
 		health--;
-		Debug.Log(health);
 		healthText.text = generateHealthText();
 		if(health == 0) {
 			started = false;
@@ -224,6 +227,12 @@ public class Game : MonoBehaviour {
 		GameObject target = hit.collider.transform.parent.gameObject;
 		Vector3 hitPosition = target.transform.InverseTransformPoint(hit.point);
 		hitPositions.Add(hitPosition);
+		Destroy(target);
+		hitSound.Play();
+		score++;
+	}
+
+	public void autoTargetHit(GameObject target) {
 		Destroy(target);
 		hitSound.Play();
 		score++;

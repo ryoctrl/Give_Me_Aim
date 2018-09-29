@@ -22,6 +22,11 @@ public class Target : MonoBehaviour {
 	public GameObject hitPrefab;
 	private List<Vector3> hitPositions;
 
+	///
+	private float debugTimer = 0;
+	private bool autoMode = false;
+	///
+
 
 	/// 的の大きさが変化する速度
 	private float speed = 0.0175f;
@@ -62,6 +67,7 @@ public class Target : MonoBehaviour {
 	/// おおきさが変わったりする
 	void Update () {
 		if(isMaxSized && isResultTarget) return;
+
 		Vector3 ls = transform.localScale;
 		if(isMaxSized && !isResultTarget) {
 			ls.x -= speed;
@@ -72,7 +78,12 @@ public class Target : MonoBehaviour {
 		}
 		
 		transform.localScale = ls;
-		if(ls.x >= 3f) isMaxSized = true;
+		debugTimer += Time.deltaTime;
+		if(ls.x >= 3f) {
+			if(autoMode && !isResultTarget) Game.gameInstance.autoTargetHit(this.transform.gameObject);
+			Debug.Log("TargetMaximized:" + debugTimer);
+			isMaxSized = true;
+		}
 		else if(ls.x < 0.0f) {
 			Destroy(high.transform.parent.gameObject);
 			Game.gameInstance.miss();
@@ -95,5 +106,9 @@ public class Target : MonoBehaviour {
 			hit.GetComponent<SpriteRenderer>().sortingOrder = orderInLayer;
 			hit.transform.parent = transform;
 		}
+	}
+
+	public void changeAutoMode() {
+		autoMode = true;
 	}
 }
