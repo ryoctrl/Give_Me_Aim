@@ -5,18 +5,17 @@ using System;
 using UnityEngine;
 
 public class TimingCreater : MonoBehaviour {
+	// タイマー
 	private float timer = 0;
+	// 記録したタイミングのリスト
 	private List<float> timingList = new List<float>();
-	private bool start = false;
-
+	// タイミングを記録した際のサウンド
 	private AudioSource createSound;
 
-	// Use this for initialization
 	void Start () {
 		createSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 	}
 	
-	// Update is called once per frame
 	void Update () {
 		if(!Game.gameInstance.isPlaying() || Game.gameInstance.isPausing()) {
 			timer = 0;
@@ -25,7 +24,6 @@ public class TimingCreater : MonoBehaviour {
 		timer += Time.deltaTime;
 		if(Input.GetKeyDown(KeyCode.T)) {
 			timingList.Add(timer);
-			Debug.Log(timer);
 			createSound.Play();
 		}
 		if(Input.GetKeyDown(KeyCode.Q)) {
@@ -33,10 +31,9 @@ public class TimingCreater : MonoBehaviour {
 		}
 	}
 
-	public void startTiming() {
-		this.start = true;
-	}
-
+	/// 
+	/// 記録したタイミングをファイルに書き出す。
+	///
 	private void Save() {
 		StreamWriter sw;
 		FileInfo fi;

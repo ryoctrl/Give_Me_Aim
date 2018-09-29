@@ -46,28 +46,42 @@ public class Game : MonoBehaviour {
 	private Text accuracyText;
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
+	//射撃時の音
 	private AudioSource hitSound;
+	//ビデオプレーヤー
 	private VideoPlayer videoPlayer;
+	//タイミングクリエーター
 	private TimingCreater tc;
+	// ゲーム中に射撃したターゲットの相対位置リスト
 	private List<Vector3> hitPositions = new List<Vector3>();
+	//リザルトが麺に表示するターゲット
 	private GameObject resultTarget;
+	//メニュー
 	private GameObject menuCanvas;
-	
+	// ガイドラインの丸のプレハブ(UnityEditorからのセット用)
 	public GameObject guideLinePrefab;
+	// ガイドラインの丸のプレハブ(外部スクリプトから読み込むため上記のPrefabをこちらにセットしなおしている)
 	public static GameObject guideLineNodePrefab;
+	// 音ゲー用の動画を再生したかどうか
 	private bool movieStarted = false;
-
+	//本来推すべき時間からこの秒数を引いた時間にターゲットを生成する。
+	//TODO: 設定に吐き出すべき
 	private float otogeInterval = 2.25f;
-	
+	//前に生成したターゲット
 	private GameObject previousTarget = null;
-	
+	// 前に生成したターゲットのワールド位置
 	private Vector3 previousPos;
+	// 最初のターゲットを生成したか
 	private bool firstPosSetted = false;
-	
+	// 的作成のタイミング
 	private List<float> timingList = new List<float>();
+	// 音ゲーモードか否か
 	private bool otogeMode = false;
+	// タイミングリストの先頭からいくつ呼んだか
 	private int otogeCount = 0;
+	// オートモードか否か
 	private bool autoMode = false;
+	// ポーズ中か否か
 	private bool pausing = false;
 
 	
@@ -93,14 +107,10 @@ public class Game : MonoBehaviour {
 	
 	}
 
-	public void MenuLoadComplete() {
-		menuCanvas.SetActive(false);
-	}
 
 	///
 	/// 毎フレーム行う処理
 	///
-
 	void Update () {
 		mouseProcess();
 		KeyboardListen();
@@ -108,7 +118,6 @@ public class Game : MonoBehaviour {
 		if(movieStarted && !videoPlayer.isPlaying && timer > 2f) {
 			miss();
 		} else if(!videoPlayer.isPlaying && otogeMode) {
-			tc.startTiming();
 			videoPlayer.Play();
 			movieStarted = true;
 		}
@@ -124,7 +133,6 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-
 	///
 	/// キー入力認識
 	///
@@ -135,28 +143,7 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	///
-	///音ゲーモードの譜面を読み込む
-	///
-	public void Read() {
-		timingList = new List<float>();
-		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
-		if(path == "") return;
-		videoPlayer.url = path + "\\movie.mp4";
-		FileInfo fi = new FileInfo(path + "\\chart.txt");
-		string line = "";
-		try {
-			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
-				while((line = sr.ReadLine()) != null) {
-					timingList.Add(float.Parse(line));
-				}
-			}
-			Debug.Log("Complete chart loading : " + timingList.Count + "combos");
-		}catch (Exception e) {
-			Debug.Log(e);
-		}
-	}
-
+	
 	///
 	/// マウス入力を待つ
 	/// 現状ターゲット破壊認識を担っている
@@ -227,6 +214,7 @@ public class Game : MonoBehaviour {
 		seconds = 0;
 		return newTarget.GetComponent<Target>();
 	}
+
 	///
 	/// ガイドラインを生成する
 	///
@@ -349,7 +337,7 @@ public class Game : MonoBehaviour {
 	///
 	public void changeMode(bool otogeMode) {
 		if(started) return;
-		if(otogeMode) Read();
+		if(otogeMode) LoadSong();
 		this.otogeMode = otogeMode;
 	}
 
@@ -368,6 +356,9 @@ public class Game : MonoBehaviour {
 		return started;
 	}
 
+	///
+	/// トップ画面に戻る
+	///
 	public void backToTop() {
 		videoPlayer.Stop();
 		pausing = false;
@@ -376,6 +367,9 @@ public class Game : MonoBehaviour {
 		miss();
 	}
 	
+	///
+	/// ポーズする。
+	///
 	public void Pause() {
 		if(pausing) {
 			pausing = false;
@@ -386,7 +380,32 @@ public class Game : MonoBehaviour {
 		}
 	}
 
+	///
+	/// ポーズ中か否か
+	///
 	public bool isPausing() {
 		return pausing;
 	}
+
+	///
+	///音ゲーモードの譜面を読み込む
+	///
+	public void LoadSong() {
+		timingList = new List<float>();
+		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
+		if(path == "") return;
+		videoPlayer.url = path + "\\movie.mp4";
+		FileInfo fi = new FileInfo(path + "\\chart.txt");
+		string line = "";
+		try {
+			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
+				while((line = sr.ReadLine()) != null) {
+					timingList.Add(float.Parse(line));
+				}
+			}
+		}catch (Exception e) {
+			Debug.Log(e);
+		}
+	}
+
 }

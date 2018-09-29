@@ -32,7 +32,7 @@ public class Menu : MonoBehaviour {
 		clickInput = GameObject.Find("ClickKeyInput").GetComponent<InputField>();
 		songDropdown = GameObject.Find("SongDropdown").GetComponent<Dropdown>();
 		allInitialize();
-		Game.gameInstance.MenuLoadComplete();
+		transform.gameObject.SetActive(false);
 	}
 
 	private void allInitialize() {
@@ -56,7 +56,7 @@ public class Menu : MonoBehaviour {
 		index = songDropdown.value;
 		if(Game.gameInstance.isPlaying()) return;
 		PlayerPrefs.SetString(SONG_KEY, songsList.Count > index ? songsList[index] : "");
-		Game.gameInstance.Read();
+		Game.gameInstance.LoadSong();
 	}
 
 	public void changeVolume() {
