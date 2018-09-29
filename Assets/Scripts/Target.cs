@@ -18,7 +18,7 @@ public class Target : MonoBehaviour {
 	/// 最大サイズに達して縮むべきか否かのフラグ
 	private bool isMaxSized = false;
 	/// 的の大きさが変化する速度
-	private float speed = 0.03f;
+	private float speed = 0.0175f;
 
 	///的生成時に一度のみ呼ばれる処理。
 	///GameObjectを初期化する。
@@ -66,7 +66,7 @@ public class Target : MonoBehaviour {
 		}
 		
 		transform.localScale = ls;
-		if(ls.x >= 2f) isMaxSized = true;
+		if(ls.x >= 3f) isMaxSized = true;
 		else if(ls.x < 0.0f) {
 			Destroy(high.transform.parent.gameObject);
 			Game.gameInstance.miss();

@@ -1,7 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Text;
+using UnityEngine.Video;
 
 ///
 /// ゲーム全体のスクリプト。Canvasにアタッチ。
@@ -41,6 +45,9 @@ public class Game : MonoBehaviour {
 	private Text accuracyText;
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
+	private AudioSource hitSound;
+	private VideoPlayer videoPlayer;
+	private TimingCreater tc;
 
 	///
 	/// ゲーム起動時に一度だけ呼ばれる処理.
@@ -53,19 +60,65 @@ public class Game : MonoBehaviour {
 		scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
 		healthText = GameObject.Find("HealthText").GetComponent<Text>();
 		accuracyText = GameObject.Find("AccuracyText").GetComponent<Text>();
+		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
+		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
+		Debug.Log(videoPlayer.isLooping);
+		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
 		Game.gameInstance = this;
 	}
 
 	///
 	/// 毎フレーム行う処理
 	///
+	private bool movieStarted = false;
 	void Update () {
 		if(Input.GetKeyDown(KeyCode.Space)) Debug.Break();
 		mouseProcess();
+		modeListen();
 		if(!started) return;
-		generateTarget();
+		if(movieStarted && !videoPlayer.isPlaying) {
+			miss();
+		} else if(!videoPlayer.isPlaying && otogeMode) {
+			tc.startTiming();
+			videoPlayer.Play();
+			movieStarted = true;
+		}
 		updateTimer();
+		if(!otogeMode) {
+			generateTarget();
+		} else if(otogeCount < timingList.Count){
+			if(timer > timingList[otogeCount] - 1.4) {
+				generateTarget();
+				otogeCount++;
+			} 
+		}
 		
+	}
+
+	private void modeListen() {
+		if(!started && Input.GetKeyDown(KeyCode.M)) {
+			Read();
+			otogeMode = true;
+			Debug.Log("Otoge Mode Activated!");
+
+		}
+	}
+	private List<float> timingList = new List<float>();
+	private bool otogeMode = false;
+	private int otogeCount = 0;
+	private void Read() {
+		FileInfo fi = new FileInfo(Application.dataPath + "/givemeegg.csv");
+		string line = "";
+		try {
+			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
+				while((line = sr.ReadLine()) != null) {
+					//Debug.Log("Adding time to " + line);
+					timingList.Add(float.Parse(line));
+				}
+			}
+		}catch (Exception e) {
+			Debug.Log(e);
+		}
 	}
 
 	private void mouseProcess() {
@@ -84,7 +137,7 @@ public class Game : MonoBehaviour {
 	///
 	private void gameInitialize() {
 		score = 0;
-		health = 3;
+		health = 300;
 		timer = 0;
 		interval = 1;
 		shots = 0;
@@ -97,10 +150,7 @@ public class Game : MonoBehaviour {
 	}
 
 	private string generateHealthText() {
-		string healthText = "";
-		for(int i = 0; i < health; i++) healthText += "!";
-		return "Health " + healthText;
-		
+		return "Health: " + health.ToString();
 	}
 
 	///
@@ -108,8 +158,10 @@ public class Game : MonoBehaviour {
 	///
 	private void generateTarget() {
 		if(!started) return;
-		seconds += Time.deltaTime;
-		if(seconds < interval) return;
+		if(!otogeMode) {
+			seconds += Time.deltaTime;
+			if(seconds < interval) return;
+		}
 
 		newTarget = Instantiate(targetPrefab, getRandomPos(), Quaternion.identity);
 		targets.Add(newTarget);
@@ -133,7 +185,7 @@ public class Game : MonoBehaviour {
 	/// 的を出現させるランダム位置を作成
 	///
 	private Vector3 getRandomPos() {
-		return new Vector3(Random.Range(-width, width), Random.Range(-height, height), 0);
+		return new Vector3(UnityEngine.Random.Range(-width, width), UnityEngine.Random.Range(-height, height), 0);
 	}
 
 	///
@@ -141,6 +193,7 @@ public class Game : MonoBehaviour {
 	///
 	public void miss() {
 		health--;
+		Debug.Log(health);
 		healthText.text = generateHealthText();
 		if(health == 0) {
 			started = false;
@@ -161,6 +214,7 @@ public class Game : MonoBehaviour {
 	///
 	private void hitTarget(GameObject target) {
 		Destroy(target);
+		hitSound.Play();
 		score++;
 	}
 
