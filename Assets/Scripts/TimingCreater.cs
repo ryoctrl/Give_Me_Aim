@@ -18,10 +18,14 @@ public class TimingCreater : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(!start || Game.gameInstance.isPausing()) return;
+		if(!Game.gameInstance.isPlaying() || Game.gameInstance.isPausing()) {
+			timer = 0;
+			return;
+		}
 		timer += Time.deltaTime;
 		if(Input.GetKeyDown(KeyCode.T)) {
 			timingList.Add(timer);
+			Debug.Log(timer);
 			createSound.Play();
 		}
 		if(Input.GetKeyDown(KeyCode.Q)) {

@@ -53,8 +53,10 @@ public class Menu : MonoBehaviour {
 	}
 
 	public void onSongChanged(int index) {
+		index = songDropdown.value;
 		if(Game.gameInstance.isPlaying()) return;
 		PlayerPrefs.SetString(SONG_KEY, songsList.Count > index ? songsList[index] : "");
+		Game.gameInstance.Read();
 	}
 
 	public void changeVolume() {

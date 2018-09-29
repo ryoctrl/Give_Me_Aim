@@ -138,10 +138,10 @@ public class Game : MonoBehaviour {
 	///
 	///音ゲーモードの譜面を読み込む
 	///
-	private void Read() {
+	public void Read() {
+		timingList = new List<float>();
 		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
 		if(path == "") return;
-		Debug.Log(path);
 		videoPlayer.url = path + "\\movie.mp4";
 		FileInfo fi = new FileInfo(path + "\\chart.txt");
 		string line = "";
@@ -151,6 +151,7 @@ public class Game : MonoBehaviour {
 					timingList.Add(float.Parse(line));
 				}
 			}
+			Debug.Log("Complete chart loading : " + timingList.Count + "combos");
 		}catch (Exception e) {
 			Debug.Log(e);
 		}
