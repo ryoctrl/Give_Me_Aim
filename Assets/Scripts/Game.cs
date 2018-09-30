@@ -83,6 +83,8 @@ public class Game : MonoBehaviour {
 	private bool autoMode = false;
 	// ポーズ中か否か
 	private bool pausing = false;
+	private AudioSource audioSource;
+	private Image background;
 
 	
 
@@ -101,11 +103,13 @@ public class Game : MonoBehaviour {
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
+		audioSource = GameObject.Find("Audio Source").GetComponent<AudioSource>();
 		Game.gameInstance = this;
 		menuCanvas = GameObject.Find("MenuCanvas");
-		
-	
+		background = GameObject.Find("BackgroundImage").GetComponent<Image>();
 	}
+
+	private string currentMoviePath = "";
 
 
 	///
@@ -115,10 +119,11 @@ public class Game : MonoBehaviour {
 		mouseProcess();
 		KeyboardListen();
 		if(!started || pausing) return;
-		if(movieStarted && !videoPlayer.isPlaying && timer > 2f) {
+		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && timer > 2f) {
 			miss();
-		} else if(!videoPlayer.isPlaying && otogeMode) {
-			videoPlayer.Play();
+		} else if(!(videoPlayer.isPlaying || audioSource.isPlaying)&& otogeMode) {
+			if(File.Exists(currentMoviePath)) videoPlayer.Play();
+			else audioSource.Play();
 			movieStarted = true;
 		}
 		updateTimer();
@@ -360,7 +365,11 @@ public class Game : MonoBehaviour {
 	/// トップ画面に戻る
 	///
 	public void backToTop() {
-		videoPlayer.Stop();
+		if(File.Exists(currentMoviePath)) {
+			Debug.Log("Stopping movie");
+			videoPlayer.Stop();
+		}
+		else audioSource.Stop();
 		pausing = false;
 		menuCanvas.SetActive(false);
 		health = 1;
@@ -373,10 +382,12 @@ public class Game : MonoBehaviour {
 	public void Pause() {
 		if(pausing) {
 			pausing = false;
-			if(started && !videoPlayer.isPlaying) videoPlayer.Play();
+			if(File.Exists(currentMoviePath) && started && !videoPlayer.isPlaying) videoPlayer.Play();
+			else if(started && !audioSource.isPlaying) audioSource.Play();
 		} else {
 			pausing = true;
 			if(videoPlayer.isPlaying) videoPlayer.Pause();
+			if(audioSource.isPlaying) audioSource.Pause();
 		}
 	}
 
@@ -391,10 +402,14 @@ public class Game : MonoBehaviour {
 	///音ゲーモードの譜面を読み込む
 	///
 	public void LoadSong() {
+		audioSource.clip = null;
+		background.sprite = null;
 		timingList = new List<float>();
 		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
 		if(path == "") return;
-		videoPlayer.url = path + "\\movie.mp4";
+		string moviePath = path + "\\" + ExtendSongs.MOVIE_FILE;
+		if(File.Exists(moviePath)) videoPlayer.url = moviePath;
+		else StartCoroutine(ExtendSongs.SetAudioSource(path));
 		FileInfo fi = new FileInfo(path + "\\chart.txt");
 		string line = "";
 		try {
@@ -403,9 +418,12 @@ public class Game : MonoBehaviour {
 					timingList.Add(float.Parse(line));
 				}
 			}
+			currentMoviePath = moviePath;
 		}catch (Exception e) {
 			Debug.Log(e);
 		}
+		if(!File.Exists(moviePath) && File.Exists(path + "\\" + ExtendSongs.BACK_FILE)) {
+			background.sprite = ExtendSongs.SpriteFromFile(path + "\\" + ExtendSongs.BACK_FILE);
+		}
 	}
-
 }

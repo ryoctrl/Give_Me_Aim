@@ -20,12 +20,14 @@ public class Menu : MonoBehaviour {
 	private InputField clickInput;
 	private Dropdown songDropdown;
 	private List<string> songsList;
+	private AudioSource audioSource;
 
 
 	// Use this for initialization
 	void Start () {
 		volumeSlider = GameObject.Find("Slider").GetComponent<Slider>();
 		video = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
+		audioSource = GameObject.Find("Audio Source").GetComponent<AudioSource>();
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 		otogeToggle = GameObject.Find("OtogeModeToggle").GetComponent<Toggle>();
 		autoToggle = GameObject.Find("AutoModeToggle").GetComponent<Toggle>();
@@ -61,6 +63,7 @@ public class Menu : MonoBehaviour {
 
 	public void changeVolume() {
 		video.SetDirectAudioVolume(0, volumeSlider.value / 100);
+		audioSource.volume = volumeSlider.value / 100;
 		hitSound.volume = volumeSlider.value / 100;
 		PlayerPrefs.SetInt(VOLUME_KEY, (int)volumeSlider.value);
 	}
