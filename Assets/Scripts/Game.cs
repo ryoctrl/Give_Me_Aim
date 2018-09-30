@@ -66,7 +66,7 @@ public class Game : MonoBehaviour {
 	private bool movieStarted = false;
 	//本来推すべき時間からこの秒数を引いた時間にターゲットを生成する。
 	//TODO: 設定に吐き出すべき
-	private float otogeInterval = 2.25f;
+	private float otogeInterval = 2.225f;
 	//前に生成したターゲット
 	private GameObject previousTarget = null;
 	// 前に生成したターゲットのワールド位置
@@ -84,6 +84,7 @@ public class Game : MonoBehaviour {
 	// ポーズ中か否か
 	private bool pausing = false;
 	private AudioSource audioSource;
+	
 	private Image background;
 
 	
@@ -258,10 +259,20 @@ public class Game : MonoBehaviour {
 			float interval = width / 2;
 			float widthMinus = previousPos.x - interval > -width ? previousPos.x - interval : -width;
 			float widthPlus = previousPos.x + interval  < width ? previousPos.x + interval : width;
+			float randX = UnityEngine.Random.Range(widthMinus, widthPlus);
+			if(randX > previousPos.x - 1 && randX < previousPos.x + 1) {
+				randX = randX - 1.5f < -interval ? randX + 3 : randX - 1.5f;
+			} 
+
 			interval = height / 2;
 			float heightMinus = previousPos.y - interval  > -height ? previousPos.y - interval : -height;
 			float heightPlus = previousPos.y + interval < height ? previousPos.y + interval : height;
-			newPos = new Vector3(UnityEngine.Random.Range(widthMinus, widthPlus), UnityEngine.Random.Range(heightMinus, heightPlus), 0);
+			float randY = UnityEngine.Random.Range(heightMinus, heightPlus);
+			if(randY > previousPos.y - 1 && randY < previousPos.y + 1) {
+				randY = randY - 1.5f < -interval ? randY + 3 : randY - 1.5f;
+			}
+
+			newPos = new Vector3(randX, randY, 0);
 		}
 		previousPos = newPos;
 		return newPos;
