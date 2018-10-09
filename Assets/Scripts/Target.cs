@@ -22,12 +22,7 @@ public class Target : MonoBehaviour {
 	public GameObject hitPrefab;
 	private List<Vector3> hitPositions;
 	private bool autoMode = false;
-	/// 的の大きさが変化する速度
-	//private float speed = 0.0175f;
-	//private float speed = 0.012f;
-	//private float speed = ;
-
-	//private float speed = 0.03f;
+	private float targetSecond = 1.6f;
 	
 	///的生成時に一度のみ呼ばれる処理。
 	///GameObjectを初期化する。
@@ -76,7 +71,7 @@ public class Target : MonoBehaviour {
 		}
 	
 		transform.localScale = ls;
-		if(ls.x >= 2f) {
+		if(ls.x >= targetSecond) {
 			if(autoMode && !isResultTarget) Game.gameInstance.autoTargetHit(this.transform.gameObject);
 			isMaxSized = true;
 		}

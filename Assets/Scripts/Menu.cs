@@ -21,6 +21,7 @@ public class Menu : MonoBehaviour {
 	private Dropdown songDropdown;
 	private List<string> songsList;
 	private AudioSource audioSource;
+	private Game game = Game.gameInstance;
 
 
 	// Use this for initialization
@@ -91,6 +92,7 @@ public class Menu : MonoBehaviour {
 
 	public void PushBackButton() {
 		transform.gameObject.SetActive(false);
+		if(Game.gameInstance.isPausing()) Game.gameInstance.Pause();
 	}
 
 	public void PushTopButton() {

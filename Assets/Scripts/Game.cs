@@ -65,8 +65,7 @@ public class Game : MonoBehaviour {
 	// 音ゲー用の動画を再生したかどうか
 	private bool movieStarted = false;
 	//本来推すべき時間からこの秒数を引いた時間にターゲットを生成する。
-	//TODO: 設定に吐き出すべき
-	private float otogeInterval = 2.225f;
+	private float otogeInterval = 1.6f;
 	//前に生成したターゲット
 	private GameObject previousTarget = null;
 	// 前に生成したターゲットのワールド位置
@@ -85,7 +84,7 @@ public class Game : MonoBehaviour {
 	private bool pausing = false;
 	private AudioSource audioSource;
 	
-	private Image background;
+	private SpriteRenderer background;
 
 	
 
@@ -107,25 +106,25 @@ public class Game : MonoBehaviour {
 		audioSource = GameObject.Find("Audio Source").GetComponent<AudioSource>();
 		Game.gameInstance = this;
 		menuCanvas = GameObject.Find("MenuCanvas");
-		background = GameObject.Find("BackgroundImage").GetComponent<Image>();
+		background = GameObject.Find("BackgroundImage").GetComponent<SpriteRenderer>();
 	}
 
 	private string currentMoviePath = "";
 
+	int soundCount = 0;
 
 	///
 	/// 毎フレーム行う処理
 	///
 	void Update () {
+		//debug();
 		mouseProcess();
 		KeyboardListen();
 		if(!started || pausing) return;
-		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && timer > 2f) {
+		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && timer > 100f) {
 			miss();
 		} else if(!(videoPlayer.isPlaying || audioSource.isPlaying)&& otogeMode) {
-			if(File.Exists(currentMoviePath)) videoPlayer.Play();
-			else audioSource.Play();
-			movieStarted = true;
+			PlayVideoOrAudio();
 		}
 		updateTimer();
 		if(!otogeMode) {
@@ -136,6 +135,27 @@ public class Game : MonoBehaviour {
 				if(autoMode && target != null) target.changeAutoMode();
 				otogeCount++;
 			} 
+		}
+	}
+	private float playInterval = 0;
+	private void PlayVideoOrAudio() {
+		if(timer <= playInterval) return;
+		if(File.Exists(currentMoviePath)) videoPlayer.Play();
+		else audioSource.Play();
+		movieStarted = true;
+	}
+
+	///debug用
+	private float debugTimer = 0;
+	private int c = 0;
+	private float[] timing = {2.0f, 2.5f};
+	private Vector3[] positions = {new Vector3(-0.25f, 0, 0), new Vector3(0.25f, 0, 0)};
+	private void debug() {
+		if(c >= timing.Length) return;
+		debugTimer += Time.deltaTime;
+		if(debugTimer >= timing[c]) {
+			Instantiate(targetPrefab, positions[c], Quaternion.identity);
+			c++;
 		}
 	}
 
@@ -187,6 +207,7 @@ public class Game : MonoBehaviour {
 		scoreText.text = "";
 		accuracyText.text = "";
 		otogeCount = 0;
+		soundCount = 0;
 		healthText.text = generateHealthText();
 	}
 
@@ -209,6 +230,7 @@ public class Game : MonoBehaviour {
 		}
 
 		newTarget = Instantiate(targetPrefab, getRandomPos(), Quaternion.identity);
+		//Debug.Log(newTarget.gameObject.order)
 		if(otogeMode && previousTarget != null) {
 			generateGuideLine(previousTarget, newTarget);
 		}
@@ -230,11 +252,13 @@ public class Game : MonoBehaviour {
 		Vector3 newPos = newTarget.transform.position;
 		float dis = Vector3.Distance(prePos, newPos);
 		int numGuide = (int)(dis / 0.5f);
-		float interval = timingList[otogeCount] - timer;
+		float currentTiming = timingList[otogeCount - 1];
+		float nextTiming = timingList[otogeCount];
+		float interval = nextTiming - currentTiming;
 		interval /= numGuide;
 		float t = (float)1 / numGuide;
 		Vector3 guidePos = Vector3.Lerp(prePos, newPos, t);
-		Instantiate(guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(interval, prePos, newPos, numGuide, 1);
+		Instantiate(guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(interval, prePos, newPos, numGuide, 1, true, currentTiming, timer);
 	}
 
 	///
@@ -409,30 +433,66 @@ public class Game : MonoBehaviour {
 		return pausing;
 	}
 
+	private float contentTime = 0;
+
 	///
 	///音ゲーモードの譜面を読み込む
 	///
 	public void LoadSong() {
+		//色々初期化
 		audioSource.clip = null;
 		background.sprite = null;
 		timingList = new List<float>();
+
+		//楽曲のパス取得
 		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
 		if(path == "") return;
+
+		//動画を優先してセット
+		//動画が無ければ曲読み込み
 		string moviePath = path + "\\" + ExtendSongs.MOVIE_FILE;
-		if(File.Exists(moviePath)) videoPlayer.url = moviePath;
-		else StartCoroutine(ExtendSongs.SetAudioSource(path));
+		if(File.Exists(moviePath)) {
+			videoPlayer.url = moviePath;
+			Debug.Log("VideoTime:" +  videoPlayer.timeReference);
+		} else {
+			StartCoroutine(ExtendSongs.SetAudioSource(path));
+			Debug.Log("Audio time: " + audioSource.time);
+		} 
+		
+		//譜面読み込み
 		FileInfo fi = new FileInfo(path + "\\chart.txt");
 		string line = "";
+		bool hasInterval = false;
 		try {
+			bool osu = false, timingPoint = false;
 			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
 				while((line = sr.ReadLine()) != null) {
-					timingList.Add(float.Parse(line));
+					if(line.StartsWith("osu")) {
+						osu = true;
+					}
+					if(!osu) {
+						timingList.Add(float.Parse(line));
+					} else {
+						if(timingPoint) {
+							string[] datas = line.Split(',');
+							float timing = float.Parse(datas[2]) / 1000;
+							if(!hasInterval && timing <= 3.0f) hasInterval = true;
+							if(hasInterval) timing += 3.0f;
+							timingList.Add(timing);
+						} else {
+							if(line.StartsWith("[HitObjects]")) timingPoint = true;
+						}
+					}
+					
 				}
 			}
+			if(hasInterval) playInterval = 3.0f;
 			currentMoviePath = moviePath;
 		}catch (Exception e) {
 			Debug.Log(e);
 		}
+		
+		//背景設定
 		if(!File.Exists(moviePath) && File.Exists(path + "\\" + ExtendSongs.BACK_FILE)) {
 			background.sprite = ExtendSongs.SpriteFromFile(path + "\\" + ExtendSongs.BACK_FILE);
 		}
