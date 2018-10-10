@@ -4,102 +4,80 @@ using System.IO;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Text;
-using UnityEngine.Video;
 
 ///
 /// ゲーム全体のスクリプト。Canvasにアタッチ。
 ///
 public class Game : SingletonMonoBehaviour<Game> {
 	public static Game gameInstance = null;
+
+	//prefabs
+	///的のプレハブ用変数
+	public GameObject targetPrefab;
+	// ガイドラインの丸のプレハブ(UnityEditorからのセット用)
+	public GameObject guideLinePrefab;
+	// ガイドラインの丸のプレハブ(外部スクリプトから読み込むため上記のPrefabをこちらにセットしなおしている)
+	public static GameObject guideLineNodePrefab;
+	//game statuses
 	///TargetをHitした回数
 	private int score;
 	///HP。Targetを逃すと1減る。
 	private int health;
 	//クリックした回数
 	private int shots;
-	///的のプレハブ用変数
-	public GameObject targetPrefab;
+	// 的作成のタイミング
+	private List<float> timingList = new List<float>();
+	// タイミングリストの先頭からいくつ呼んだか
+	private int otogeCount = 0;
 	///前回の的出現からの経過時間
 	private float seconds;
+	//game options
 	///的が出現する間隔
 	public float interval = 1f;
-	///スタートボタンクリックフラグ（Sceneを分けたくなかったため用意)
-	private bool playing = false;
+	//本来推すべき時間からこの秒数を引いた時間にターゲットを生成する。
+	private float otogeInterval = 1.6f;
 	///インスタンス化した的のリスト。
 	private List<GameObject> targets = new List<GameObject>();
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
 	//射撃時の音
 	private AudioSource hitSound;
-	//ビデオプレーヤー
-	private VideoPlayer videoPlayer;
 	//タイミングクリエーター
 	private TimingCreater tc;
 	// ゲーム中に射撃したターゲットの相対位置リスト
 	private List<Vector3> hitPositions = new List<Vector3>();
 	//リザルトが麺に表示するターゲット
 	private GameObject resultTarget;
-	//メニュー
-	private GameObject menuCanvas;
-	// ガイドラインの丸のプレハブ(UnityEditorからのセット用)
-	public GameObject guideLinePrefab;
-	// ガイドラインの丸のプレハブ(外部スクリプトから読み込むため上記のPrefabをこちらにセットしなおしている)
-	public static GameObject guideLineNodePrefab;
-	// 音ゲー用の動画を再生したかどうか
-	private bool movieStarted = false;
-	//本来推すべき時間からこの秒数を引いた時間にターゲットを生成する。
-	private float otogeInterval = 1.6f;
 	//前に生成したターゲット
 	private GameObject previousTarget = null;
 	// 前に生成したターゲットのワールド位置
 	private Vector3 previousPos;
+	private SpriteRenderer background;
+	private IContentsPlayer contentsPlayer;
+	///スタートボタンクリックフラグ（Sceneを分けたくなかったため用意)
+	private bool playing = false;
 	// 最初のターゲットを生成したか
 	private bool firstPosSetted = false;
-	// 的作成のタイミング
-	private List<float> timingList = new List<float>();
 	// 音ゲーモードか否か
 	private bool otogeMode = false;
-	// タイミングリストの先頭からいくつ呼んだか
-	private int otogeCount = 0;
 	// オートモードか否か
 	private bool autoMode = false;
 	// ポーズ中か否か
 	private bool pausing = false;
-	private AudioSource audioSource;
-	
-	private SpriteRenderer background;
+	private float playInterval = 0;
 
-	
-
-	///
-	/// ゲーム起動時に一度だけ呼ばれる処理.
-	/// GameObject変数を初期化しておく
-	///
 	void Start () {
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
-		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
-		audioSource = GameObject.Find("Audio Source").GetComponent<AudioSource>();
 		Game.gameInstance = this;
-		menuCanvas = GameObject.Find("OptionsMenuCanvas");
 		background = GameObject.Find("BackgroundImage").GetComponent<SpriteRenderer>();
 	}
 
-	private string currentMoviePath = "";
-
-	int soundCount = 0;
-
-	///
-	/// 毎フレーム行う処理
-	///
 	void Update () {
 		if(!playing || pausing) return;
-		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && Timer.Instance.GetTime() > 100f) {
-			miss();
-		} else if(!(videoPlayer.isPlaying || audioSource.isPlaying)&& otogeMode) {
-			PlayVideoOrAudio();
-		}
+		if(Timer.Instance.GetTime() >= contentsPlayer.GetPlayTime() + playInterval) GameOver();
+		if(!contentsPlayer.IsPlaying() && otogeMode) PlayVideoOrAudio(); 
+
 		if(!otogeMode) {
 			generateTarget();
 		} else if(otogeCount < timingList.Count){
@@ -110,12 +88,10 @@ public class Game : SingletonMonoBehaviour<Game> {
 			} 
 		}
 	}
-	private float playInterval = 0;
+
 	private void PlayVideoOrAudio() {
-		if(Timer.Instance.GetTime() <= playInterval) return;
-		if(File.Exists(currentMoviePath)) videoPlayer.Play();
-		else audioSource.Play();
-		movieStarted = true;
+		if(!playing || Timer.Instance.GetTime() <= playInterval) return;
+		contentsPlayer.Play();
 	}
 
 	// クリックまたはD/Fキー入力処理
@@ -143,12 +119,8 @@ public class Game : SingletonMonoBehaviour<Game> {
 		interval = 1;
 		shots = 0;
 		otogeCount = 0;
-		soundCount = 0;
 		GameUI.Instance.Display();
 	}
-
-
-
 
 	///
 	/// 的を生成する処理
@@ -161,7 +133,6 @@ public class Game : SingletonMonoBehaviour<Game> {
 		}
 
 		newTarget = Instantiate(targetPrefab, getRandomPos(), Quaternion.identity);
-		//Debug.Log(newTarget.gameObject.order)
 		if(otogeMode && previousTarget != null) {
 			generateGuideLine(previousTarget, newTarget);
 		}
@@ -174,9 +145,8 @@ public class Game : SingletonMonoBehaviour<Game> {
 		return newTarget.GetComponent<Target>();
 	}
 
-	///
-	/// ガイドラインを生成する
-	///
+	//的間で光るガイドラインを生成
+	//TODO: まともに見えるようにする
 	private void generateGuideLine(GameObject previousTarget, GameObject newTarget) {
 		if(Game.guideLineNodePrefab == null) Game.guideLineNodePrefab = guideLinePrefab;
 		Vector3 prePos = previousTarget.transform.position;
@@ -192,9 +162,7 @@ public class Game : SingletonMonoBehaviour<Game> {
 		Instantiate(guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(interval, prePos, newPos, numGuide, 1, true, currentTiming, Timer.Instance.GetTime());
 	}
 
-	///
-	/// 的を出現させるランダム位置を作成
-	///
+	// 的を生成する場所を生成
 	private Vector3 getRandomPos() {
 		Vector3 newPos;
 		int width = Consts.WIDTH, height = Consts.HEIGHT;
@@ -217,18 +185,13 @@ public class Game : SingletonMonoBehaviour<Game> {
 			if(randY > previousPos.y - 1 && randY < previousPos.y + 1) {
 				randY = randY - 1.5f < -interval ? randY + 3 : randY - 1.5f;
 			}
-
 			newPos = new Vector3(randX, randY, 0);
 		}
 		previousPos = newPos;
 		return newPos;
 	}
 
-	
-
-	///
-	/// 的をクリックした時の処理
-	///
+	// 的をクリックしたときの処理
 	private void hitTarget(RaycastHit2D hit) {
 		GameObject target = hit.collider.transform.parent.gameObject;
 		Vector3 hitPosition = target.transform.InverseTransformPoint(hit.point);
@@ -238,10 +201,16 @@ public class Game : SingletonMonoBehaviour<Game> {
 		score++;
 	}
 
-
-	///
-	/// Public Methods
-	///
+	// ゲーム終了処理
+	private void GameOver() {
+		playing = false;
+		foreach(GameObject target in targets) {
+			Destroy(target);
+		}
+		GameUI.Instance.Hide();
+		ResultUI.Instance.DisplayResult();
+		MainMenuUI.Instance.Display();
+	}
 	
 	///
 	/// AudoMode時のターゲット自動クリック処理
@@ -258,15 +227,7 @@ public class Game : SingletonMonoBehaviour<Game> {
 	public void miss() {
 		health--;
 		GameUI.Instance.UpdateHealth();
-		if(health == 0) {
-			playing = false;
-			foreach(GameObject target in targets) {
-				Destroy(target);
-			}
-			GameUI.Instance.Hide();
-			ResultUI.Instance.DisplayResult();
-			MainMenuUI.Instance.Display();
-		}
+		if(health == 0) GameOver();
 	}
 
 	
@@ -294,6 +255,7 @@ public class Game : SingletonMonoBehaviour<Game> {
 		return playing;
 	}
 
+	//ゲーム中断
 	public void Interrupt() {
 		StopSounds();
 		pausing = false;
@@ -306,8 +268,7 @@ public class Game : SingletonMonoBehaviour<Game> {
 	}
 	
 	private void StopSounds() {
-		if(File.Exists(currentMoviePath)) videoPlayer.Stop();
-		else audioSource.Stop();
+		contentsPlayer.Stop();
 	}
 	
 	///
@@ -317,13 +278,11 @@ public class Game : SingletonMonoBehaviour<Game> {
 		if(pausing) {
 			pausing = false;
 			Timer.Instance.Begin();
-			if(File.Exists(currentMoviePath) && playing && !videoPlayer.isPlaying) videoPlayer.Play();
-			else if(playing && !audioSource.isPlaying) audioSource.Play();
+			contentsPlayer.Play();
 		} else {
 			pausing = true;
 			Timer.Instance.Pause();
-			if(videoPlayer.isPlaying) videoPlayer.Pause();
-			if(audioSource.isPlaying) audioSource.Pause();
+			contentsPlayer.Pause();
 		}
 	}
 
@@ -334,14 +293,10 @@ public class Game : SingletonMonoBehaviour<Game> {
 		return pausing;
 	}
 
-	private float contentTime = 0;
-
-	///
-	///音ゲーモードの譜面を読み込む
-	///
+	//音ゲーモードの譜面を読み込む
 	public void LoadSong() {
 		//色々初期化
-		audioSource.clip = null;
+		playInterval = 0;
 		background.sprite = null;
 		timingList = new List<float>();
 
@@ -352,45 +307,19 @@ public class Game : SingletonMonoBehaviour<Game> {
 		//動画を優先してセット
 		//動画が無ければ曲読み込み
 		string moviePath = path + "\\" + ExtendSongs.MOVIE_FILE;
-		if(File.Exists(moviePath)) {
-			videoPlayer.url = moviePath;
-			Debug.Log("VideoTime:" +  videoPlayer.timeReference);
-		} else {
-			StartCoroutine(ExtendSongs.SetAudioSource(path));
-			Debug.Log("Audio time: " + audioSource.time);
-		} 
-		
+		if(File.Exists(moviePath)) contentsPlayer = VideoContentsPlayer.Instance;
+		else contentsPlayer = AudioContentsPlayer.Instance;
+
+		contentsPlayer.Load(path);
+
 		//譜面読み込み
-		FileInfo fi = new FileInfo(path + "\\chart.txt");
-		string line = "";
-		bool hasInterval = false;
-		try {
-			bool osu = false, timingPoint = false;
-			using(StreamReader sr = new StreamReader(fi.OpenRead(), Encoding.UTF8)) {
-				while((line = sr.ReadLine()) != null) {
-					if(line.StartsWith("osu")) {
-						osu = true;
-					}
-					if(!osu) {
-						timingList.Add(float.Parse(line));
-					} else {
-						if(timingPoint) {
-							string[] datas = line.Split(',');
-							float timing = float.Parse(datas[2]) / 1000;
-							if(!hasInterval && timing <= 3.0f) hasInterval = true;
-							if(hasInterval) timing += 3.0f;
-							timingList.Add(timing);
-						} else {
-							if(line.StartsWith("[HitObjects]")) timingPoint = true;
-						}
-					}
-					
-				}
+		timingList = ChartLoader.Load(path + "\\chart.txt");
+
+		if(timingList.Count > 0 && timingList[0] < 2.0f) {
+			playInterval = 2.0f;
+			for(int i = 0; i < timingList.Count; i++) {
+				timingList[i] += 2.0f;
 			}
-			if(hasInterval) playInterval = 3.0f;
-			currentMoviePath = moviePath;
-		}catch (Exception e) {
-			Debug.Log(e);
 		}
 		
 		//背景設定

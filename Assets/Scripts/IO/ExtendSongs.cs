@@ -32,10 +32,12 @@ public class ExtendSongs : MonoBehaviour {
 		return correctPaths;
 	}
 
+	public delegate void completedSetAudio();
+
 	///
 	/// 楽曲をAudoSourceにSet.
 	///
-	public static IEnumerator SetAudioSource(string songPath) {
+	public static IEnumerator SetAudioSource(string songPath, completedSetAudio callback) {
 		string url = "file://" + songPath + "\\" + MUSIC_FILE;
 
 		UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.WAV);
@@ -44,6 +46,7 @@ public class ExtendSongs : MonoBehaviour {
 
 		if(!www.isNetworkError) {
 			GameObject.Find("Audio Source").GetComponent<AudioSource>().clip = DownloadHandlerAudioClip.GetContent(www);
+			callback();
 		} else {
 			Debug.Log(www.error);
 		}
