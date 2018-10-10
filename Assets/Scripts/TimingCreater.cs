@@ -37,7 +37,7 @@ public class TimingCreater : MonoBehaviour {
 	private void Save() {
 		StreamWriter sw;
 		FileInfo fi;
-		fi = new FileInfo(PlayerPrefs.GetString(Menu.SONG_KEY) + "/chart.txt");
+		fi = new FileInfo(PlayerPrefs.GetString(Consts.SONG_KEY) + "/chart.txt");
 		sw = fi.AppendText();
 		foreach(float timing in timingList) {
 			sw.WriteLine(timing);

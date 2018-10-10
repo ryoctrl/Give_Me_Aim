@@ -10,11 +10,8 @@ using UnityEngine.Video;
 ///
 /// ゲーム全体のスクリプト。Canvasにアタッチ。
 ///
-public class Game : MonoBehaviour {
-	/// TargetやSpriteから処理を以上するためのStatic変数。
+public class Game : SingletonMonoBehaviour<Game> {
 	public static Game gameInstance = null;
-	private const int width = 8;
-	private const int height = 4;
 	///TargetをHitした回数
 	private int score;
 	///HP。Targetを逃すと1減る。
@@ -22,11 +19,9 @@ public class Game : MonoBehaviour {
 	//クリックした回数
 	private int shots;
 	///タイマー。
-	private float timer;
+	//private float timer;
 	/// タイマー表示用のTextField
-	private Text timerText;
-	/// health表示用のTextField
-	private Text healthText;
+	
 	///的のプレハブ用変数
 	public GameObject targetPrefab;
 	///前回の的出現からの経過時間
@@ -34,16 +29,10 @@ public class Game : MonoBehaviour {
 	///的が出現する間隔
 	public float interval = 1f;
 	///スタートボタンクリックフラグ（Sceneを分けたくなかったため用意)
-	private bool started = false;
+	private bool playing = false;
 	///インスタンス化した的のリスト。
 	private List<GameObject> targets = new List<GameObject>();
-	///スタートボタンobject
-	private Button startButton;
-	private Button optionsButton;
-	///リザルト表示用TextObjects（Sceneを分けたくなかったため用意)
-	private Text totalTimeText;
-	private Text scoreText;
-	private Text accuracyText;
+
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
 	//射撃時の音
@@ -93,19 +82,12 @@ public class Game : MonoBehaviour {
 	/// GameObject変数を初期化しておく
 	///
 	void Start () {
-		timerText = GameObject.Find("TimerText").gameObject.GetComponent<Text>();
-		startButton = GameObject.Find("StartButton").GetComponent<Button>();
-		optionsButton = GameObject.Find("OptionsButton").GetComponent<Button>();
-		totalTimeText = GameObject.Find("TotalTime").GetComponent<Text>();
-		scoreText = GameObject.Find("ScoreText").GetComponent<Text>();
-		healthText = GameObject.Find("HealthText").GetComponent<Text>();
-		accuracyText = GameObject.Find("AccuracyText").GetComponent<Text>();
 		hitSound = GameObject.Find("Main Camera").GetComponent<AudioSource>();
 		videoPlayer = GameObject.Find("Video Player").GetComponent<VideoPlayer>();
 		tc = GameObject.Find("Video Player").GetComponent<TimingCreater>();
 		audioSource = GameObject.Find("Audio Source").GetComponent<AudioSource>();
 		Game.gameInstance = this;
-		menuCanvas = GameObject.Find("MenuCanvas");
+		menuCanvas = GameObject.Find("OptionsMenuCanvas");
 		background = GameObject.Find("BackgroundImage").GetComponent<SpriteRenderer>();
 	}
 
@@ -117,20 +99,16 @@ public class Game : MonoBehaviour {
 	/// 毎フレーム行う処理
 	///
 	void Update () {
-		//debug();
-		mouseProcess();
-		KeyboardListen();
-		if(!started || pausing) return;
-		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && timer > 100f) {
+		if(!playing || pausing) return;
+		if(movieStarted && !(videoPlayer.isPlaying || audioSource.isPlaying) && Timer.Instance.GetTime() > 100f) {
 			miss();
 		} else if(!(videoPlayer.isPlaying || audioSource.isPlaying)&& otogeMode) {
 			PlayVideoOrAudio();
 		}
-		updateTimer();
 		if(!otogeMode) {
 			generateTarget();
 		} else if(otogeCount < timingList.Count){
-			if(timer >= timingList[otogeCount] - otogeInterval) {
+			if(Timer.Instance.GetTime() >= timingList[otogeCount] - otogeInterval) {
 				Target target = generateTarget();
 				if(autoMode && target != null) target.changeAutoMode();
 				otogeCount++;
@@ -139,58 +117,27 @@ public class Game : MonoBehaviour {
 	}
 	private float playInterval = 0;
 	private void PlayVideoOrAudio() {
-		if(timer <= playInterval) return;
+		if(Timer.Instance.GetTime() <= playInterval) return;
 		if(File.Exists(currentMoviePath)) videoPlayer.Play();
 		else audioSource.Play();
 		movieStarted = true;
 	}
 
-	///debug用
-	private float debugTimer = 0;
-	private int c = 0;
-	private float[] timing = {2.0f, 2.5f};
-	private Vector3[] positions = {new Vector3(-0.25f, 0, 0), new Vector3(0.25f, 0, 0)};
-	private void debug() {
-		if(c >= timing.Length) return;
-		debugTimer += Time.deltaTime;
-		if(debugTimer >= timing[c]) {
-			Instantiate(targetPrefab, positions[c], Quaternion.identity);
-			c++;
-		}
-	}
-
-	///
-	/// キー入力認識
-	///
-	private void KeyboardListen() {
-		if(Input.GetKeyDown(KeyCode.Escape)) {
-			Pause();
-			menuCanvas.SetActive(!menuCanvas.activeSelf);
-		}
-	}
-
-	
-	///
-	/// マウス入力を待つ
-	/// 現状ターゲット破壊認識を担っている
-	/// TODO: name change
-	///
-	private void mouseProcess() {
-		if(pausing) return;
-
-		if(Input.GetMouseButtonDown(0)||Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.F)){
-			shots++;
-			Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-			RaycastHit2D hit = Physics2D.Raycast(mousePos, new Vector3(0, 0, 1), 100);
-			if(hit.collider == null) return;
-			hitTarget(hit);
-		}
+	// クリックまたはD/Fキー入力処理
+	public void Shot(Vector3 shotPosition) {
+		if(!playing) return;
+		shots++;
+		RaycastHit2D hit = Physics2D.Raycast(shotPosition, new Vector3(0, 0, 1), 100);
+		if(hit.collider == null) return;
+		hitTarget(hit);
 	}
 
 	///
 	/// ゲーム中に使う変数群を初期化
 	///
 	private void gameInitialize() {
+		Timer.Instance.Stop();
+		ResultUI.Instance.Initialize();
 		if(resultTarget != null) {
 			Destroy(resultTarget);
 			resultTarget = null;
@@ -198,32 +145,21 @@ public class Game : MonoBehaviour {
 		score = 0;
 		if(otogeMode) health = 300;
 		else health = 3;
-		timer = 0;
 		interval = 1;
 		shots = 0;
-		timerText.enabled = true;
-		healthText.enabled = true;
-		totalTimeText.text = "";
-		scoreText.text = "";
-		accuracyText.text = "";
 		otogeCount = 0;
 		soundCount = 0;
-		healthText.text = generateHealthText();
+		GameUI.Instance.Display();
 	}
 
-	///
-	/// 残りHealthの表示テキストを生成
-	///
-	private string generateHealthText() {
-		return "Health: " + health.ToString();
-	}
+
 
 
 	///
 	/// 的を生成する処理
 	///
 	private Target generateTarget() {
-		if(!started) return null;
+		if(!playing) return null;
 		if(!otogeMode) {
 			seconds += Time.deltaTime;
 			if(seconds < interval) return null;
@@ -258,17 +194,7 @@ public class Game : MonoBehaviour {
 		interval /= numGuide;
 		float t = (float)1 / numGuide;
 		Vector3 guidePos = Vector3.Lerp(prePos, newPos, t);
-		Instantiate(guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(interval, prePos, newPos, numGuide, 1, true, currentTiming, timer);
-	}
-
-	///
-	/// タイマーの表示を更新
-	///
-	private void updateTimer() {
-		if(!started) return;
-		
-		timer += Time.deltaTime;
-		timerText.text = timer.ToString("F2");
+		Instantiate(guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(interval, prePos, newPos, numGuide, 1, true, currentTiming, Timer.Instance.GetTime());
 	}
 
 	///
@@ -276,6 +202,7 @@ public class Game : MonoBehaviour {
 	///
 	private Vector3 getRandomPos() {
 		Vector3 newPos;
+		int width = Consts.WIDTH, height = Consts.HEIGHT;
 		if(!otogeMode || !firstPosSetted) {
 			firstPosSetted = true;
 			newPos = new Vector3(UnityEngine.Random.Range(-width, width), UnityEngine.Random.Range(-height, height), 0);
@@ -331,43 +258,20 @@ public class Game : MonoBehaviour {
 	}
 
 	///
-	/// Startボタンを押したときの処理
-	/// TODO: RENAME
-	///
-	public void pushButton() {
-		gameInitialize();
-		started = true;
-		startButton.gameObject.SetActive(false);
-		optionsButton.gameObject.SetActive(false);
-	}
-
-	///
-	/// Optionsボタンを押した時の処理
-	///
-	public void PushOptions() {
-		if(!menuCanvas.activeSelf) menuCanvas.SetActive(true);
-	}
-
-	///
 	/// 的をクリックし損ねた時の処理(Targetから呼び出し)
 	///
 	public void miss() {
 		health--;
-		healthText.text = generateHealthText();
+		GameUI.Instance.UpdateHealth();
 		if(health == 0) {
-			started = false;
+			playing = false;
 			foreach(GameObject target in targets) {
 				Destroy(target);
 			}
-			resultTarget = Instantiate(targetPrefab, new Vector3(0, -0.8f, 0), Quaternion.identity);
-			resultTarget.GetComponent<Target>().changeModeToResultTarget(hitPositions);
-			timerText.enabled = false;
-			healthText.enabled = false;
-			accuracyText.text = "Accuracy: " + ((double)score / shots * 100).ToString("F1") + "%";
-			totalTimeText.text = "Tortal time: " + timer.ToString("F2");
-			scoreText.text = "Targets hit: " + score.ToString();
-			startButton.gameObject.SetActive(true);
-			optionsButton.gameObject.SetActive(true);
+			GameUI.Instance.Hide();
+			ResultUI.Instance.DisplayResult();
+			MainMenuUI.Instance.Display();
+
 		}
 	}
 
@@ -376,7 +280,7 @@ public class Game : MonoBehaviour {
 	/// 音ゲーモード切替
 	///
 	public void changeMode(bool otogeMode) {
-		if(started) return;
+		if(playing) return;
 		if(otogeMode) LoadSong();
 		this.otogeMode = otogeMode;
 	}
@@ -385,7 +289,7 @@ public class Game : MonoBehaviour {
 	/// オートモード切替
 	///
 	public void changeAutoMode(bool autoMode) {
-		if(!otogeMode || started) return;
+		if(!otogeMode || playing) return;
 		this.autoMode = autoMode;
 	}
 
@@ -393,7 +297,7 @@ public class Game : MonoBehaviour {
 	/// ゲーム中か否か
 	///
 	public bool isPlaying() {
-		return started;
+		return playing;
 	}
 
 	///
@@ -417,8 +321,8 @@ public class Game : MonoBehaviour {
 	public void Pause() {
 		if(pausing) {
 			pausing = false;
-			if(File.Exists(currentMoviePath) && started && !videoPlayer.isPlaying) videoPlayer.Play();
-			else if(started && !audioSource.isPlaying) audioSource.Play();
+			if(File.Exists(currentMoviePath) && playing && !videoPlayer.isPlaying) videoPlayer.Play();
+			else if(playing && !audioSource.isPlaying) audioSource.Play();
 		} else {
 			pausing = true;
 			if(videoPlayer.isPlaying) videoPlayer.Pause();
@@ -445,7 +349,7 @@ public class Game : MonoBehaviour {
 		timingList = new List<float>();
 
 		//楽曲のパス取得
-		string path = PlayerPrefs.GetString(Menu.SONG_KEY, "");
+		string path = PlayerPrefs.GetString(Consts.SONG_KEY, "");
 		if(path == "") return;
 
 		//動画を優先してセット
@@ -496,5 +400,31 @@ public class Game : MonoBehaviour {
 		if(!File.Exists(moviePath) && File.Exists(path + "\\" + ExtendSongs.BACK_FILE)) {
 			background.sprite = ExtendSongs.SpriteFromFile(path + "\\" + ExtendSongs.BACK_FILE);
 		}
+	}
+
+	public void GameStart() {
+		gameInitialize();
+		Timer.Instance.Begin();
+		playing = true;
+	}
+
+	public int GetHealth() {
+		return health;
+	}
+
+	public int GetShots() {
+		return shots;
+	}
+
+	public int GetScore() {
+		return score;
+	}
+
+	public GameObject GetTargetPrefab() {
+		return targetPrefab;
+	}
+
+	public List<Vector3> GetHitPositions() {
+		return hitPositions;
 	}
 }
