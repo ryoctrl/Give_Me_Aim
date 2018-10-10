@@ -19,16 +19,19 @@ public class Timer : SingletonMonoBehaviour<Timer> {
 		timer += Time.deltaTime;
 	}
 
+	// タイマーを停止しリセットする。
 	public void Stop() {
 		beginning = false;
 		timer = 0f;
 	}
 
 
+	// タイマーを一時停止する
 	public void Pause() {
 		beginning = false;
 	}
 
+	// タイマーを再生/再開する
 	public void Begin() {
 		beginning = true;
 	}

@@ -7,7 +7,6 @@ using UnityEditor;
 
 public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 	private Slider volumeSlider;
-
 	private Toggle otogeToggle;
 	private Toggle autoToggle;
 	private Dropdown songDropdown;
@@ -81,13 +80,14 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 
 	// Backボタンのクリック処理
 	public void OnClickBackButton() {
-		gameObject.SetActive(false);
+		Hide();
 		if(Game.gameInstance.isPausing()) Game.gameInstance.Pause();
 	}
 
 	// Topボタンのクリック処理
 	public void OnClickTopButton() {
-		Game.gameInstance.backToTop();
+		Hide();
+		Game.Instance.Interrupt();
 	}
 
 	// Exitボタンのクリック処理

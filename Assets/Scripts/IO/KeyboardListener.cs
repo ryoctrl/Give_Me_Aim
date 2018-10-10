@@ -11,7 +11,8 @@ public class KeyboardListener : MonoBehaviour {
 		if(!Input.GetKeyDown(KeyCode.Escape)) return;
 		
 		if(Game.Instance.isPlaying()) Game.Instance.Pause();
-		OptionsMenuUI.Instance.Display();
+		if(OptionsMenuUI.Instance.gameObject.activeSelf) OptionsMenuUI.Instance.Hide();
+		else OptionsMenuUI.Instance.Display();
 	}
 
 	public void ListenDF() {

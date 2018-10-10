@@ -18,10 +18,6 @@ public class Game : SingletonMonoBehaviour<Game> {
 	private int health;
 	//クリックした回数
 	private int shots;
-	///タイマー。
-	//private float timer;
-	/// タイマー表示用のTextField
-	
 	///的のプレハブ用変数
 	public GameObject targetPrefab;
 	///前回の的出現からの経過時間
@@ -32,7 +28,6 @@ public class Game : SingletonMonoBehaviour<Game> {
 	private bool playing = false;
 	///インスタンス化した的のリスト。
 	private List<GameObject> targets = new List<GameObject>();
-
 	/// インスタンス化した的オブジェクトの一時用変数(Update内で新規変数宣言をしたくなかったため用意)
 	private GameObject newTarget;
 	//射撃時の音
@@ -271,7 +266,6 @@ public class Game : SingletonMonoBehaviour<Game> {
 			GameUI.Instance.Hide();
 			ResultUI.Instance.DisplayResult();
 			MainMenuUI.Instance.Display();
-
 		}
 	}
 
@@ -300,19 +294,20 @@ public class Game : SingletonMonoBehaviour<Game> {
 		return playing;
 	}
 
-	///
-	/// トップ画面に戻る
-	///
-	public void backToTop() {
-		if(File.Exists(currentMoviePath)) {
-			Debug.Log("Stopping movie");
-			videoPlayer.Stop();
-		}
-		else audioSource.Stop();
+	public void Interrupt() {
+		StopSounds();
 		pausing = false;
-		menuCanvas.SetActive(false);
-		health = 1;
-		miss();
+		playing = false;
+		foreach(GameObject target in targets) {
+			Destroy(target);
+		}
+		GameUI.Instance.Hide();
+		MainMenuUI.Instance.Display();
+	}
+	
+	private void StopSounds() {
+		if(File.Exists(currentMoviePath)) videoPlayer.Stop();
+		else audioSource.Stop();
 	}
 	
 	///
@@ -321,10 +316,12 @@ public class Game : SingletonMonoBehaviour<Game> {
 	public void Pause() {
 		if(pausing) {
 			pausing = false;
+			Timer.Instance.Begin();
 			if(File.Exists(currentMoviePath) && playing && !videoPlayer.isPlaying) videoPlayer.Play();
 			else if(playing && !audioSource.isPlaying) audioSource.Play();
 		} else {
 			pausing = true;
+			Timer.Instance.Pause();
 			if(videoPlayer.isPlaying) videoPlayer.Pause();
 			if(audioSource.isPlaying) audioSource.Pause();
 		}
