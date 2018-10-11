@@ -34,7 +34,7 @@ public class GuidelineNode : MonoBehaviour {
 		c.a = 255;
 		sr.color = c;
 
-		if(Game.gameInstance.isPausing()) return;
+		if(GameManager.Instance.isPausing()) return;
 		timer += Time.deltaTime;
 		if(timer > destroyTime || float.IsInfinity(destroyTime)) {
 			InstansitateNewGuideAndDestroy();
@@ -46,7 +46,7 @@ public class GuidelineNode : MonoBehaviour {
 			int nextGuide = currentGuide + 1;
 			float t = (float)1 / numGuide * nextGuide;
 			Vector3 guidePos = Vector3.Lerp(prePos, newPos, t);
-			Instantiate(Game.guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(destroyTime, prePos, newPos, numGuide, nextGuide, false, 0, 0);
+			Instantiate(GameManager.guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(destroyTime, prePos, newPos, numGuide, nextGuide, false, 0, 0);
 		}
 		Destroy(transform.gameObject);
 	}

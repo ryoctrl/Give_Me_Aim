@@ -17,7 +17,7 @@ public class TimingCreater : MonoBehaviour {
 	}
 	
 	void Update () {
-		if(!Game.gameInstance.isPlaying() || Game.gameInstance.isPausing()) {
+		if(!GameManager.Instance.isPlaying() || GameManager.Instance.isPausing()) {
 			timer = 0;
 			return;
 		}

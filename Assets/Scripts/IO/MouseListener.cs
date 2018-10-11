@@ -10,6 +10,6 @@ public class MouseListener : MonoBehaviour {
 	private void ListenLeftClick() {
 		if(!Input.GetMouseButtonDown(0)) return;
 		Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-		Game.Instance.Shot(mousePos);
+		GameManager.Instance.Shot(mousePos);
 	}
 }

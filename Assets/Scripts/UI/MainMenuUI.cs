@@ -19,7 +19,7 @@ public class MainMenuUI : SingletonMonoBehaviour<MainMenuUI> {
 	/// Startボタンクリック処理
 	/// 
 	public void OnClickStartButton() {
-		Game.gameInstance.GameStart();
+		GameManager.Instance.GameStart();
 		Hide();
 	}
 

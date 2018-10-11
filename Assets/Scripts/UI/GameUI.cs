@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameUI : SingletonMonoBehaviour<GameUI> {
-	private Game game;
+	private GameManager game;
 	private Text timerText;
 	private Text healthText;
 
 	// Use this for initialization
 	void Start () {
-		game = Game.Instance;
+		game = GameManager.Instance;
 		timerText = GameObject.Find("TimerText").gameObject.GetComponent<Text>();
 		healthText = GameObject.Find("HealthText").GetComponent<Text>();
 	}
@@ -21,7 +21,7 @@ public class GameUI : SingletonMonoBehaviour<GameUI> {
 	}
 
 	private void UpdateTimerText() {
-		if(!Game.Instance.isPlaying()) return;
+		if(!game.isPlaying()) return;
 		timerText.text = Timer.Instance.GetTime().ToString("F2");
 	}
 

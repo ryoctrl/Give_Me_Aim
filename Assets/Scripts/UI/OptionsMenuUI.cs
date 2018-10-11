@@ -32,17 +32,20 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 	private void allInitialize() {
 		volumeSlider.value = PlayerPrefs.GetInt(Consts.VOLUME_KEY, 50);
 		otogeToggle.isOn = PlayerPrefs.GetInt(Consts.OTOGE_KEY, 0) == 1;
+		
 		autoToggle.isOn = PlayerPrefs.GetInt(Consts.AUTO_KEY, 0) == 1;
+		autoToggle.interactable = otogeToggle.isOn;
 		songDropdown.ClearOptions();
 		songsList = ExtendSongs.GetSongs();
 		foreach(var dir in songsList) {
-			string[] paths = dir.Split('\\');
+			string[] paths = dir.Split('/');
 			songDropdown.options.Add(new Dropdown.OptionData{text = paths[paths.Length - 1]});
 		}
 		string song = PlayerPrefs.GetString(Consts.SONG_KEY, "");
 		if(songsList.Contains(song)) songDropdown.value = songsList.IndexOf(song);
 		else OnValueChangedSongDropdown(0);
 		songDropdown.RefreshShownValue();
+		songDropdown.interactable = otogeToggle.isOn;
 	}
 
 
@@ -57,37 +60,39 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 
 	//音ゲーモードトグルの変更処理
 	public void OnValueChangedOtogeModeToggle() {
-		if(Game.gameInstance.isPlaying()) return;
-		Game.gameInstance.changeMode(otogeToggle.isOn);
+		if(GameManager.Instance.isPlaying()) return;
+		GameManager.Instance.changeMode(otogeToggle.isOn);
 		autoToggle.interactable = otogeToggle.isOn;
+		songDropdown.interactable = otogeToggle.isOn;
 		PlayerPrefs.SetInt(Consts.OTOGE_KEY, otogeToggle.isOn ? 1 : 0);
 	}
 
 	//オートモードトグルの変更処理
 	public void OnValueChangedAutoModeToggle() {
-		if(Game.gameInstance.isPlaying()) return;
-		Game.gameInstance.changeAutoMode(autoToggle.isOn);
+		if(GameManager.Instance.isPlaying()) return;
+		GameManager.Instance.changeAutoMode(autoToggle.isOn);
 		PlayerPrefs.SetInt(Consts.AUTO_KEY, autoToggle.isOn ? 1 : 0);
 	}
 
 	// 曲目ドロップダウンの変更処理
 	public void OnValueChangedSongDropdown(int index) {
 		index = songDropdown.value;
-		if(Game.gameInstance.isPlaying()) return;
+		if(GameManager.Instance.isPlaying()) return;
 		PlayerPrefs.SetString(Consts.SONG_KEY, songsList.Count > index ? songsList[index] : "");
-		Game.gameInstance.LoadSong();
+		//GameManager.Instance.LoadSong();
+		GameManager.Instance.SongChanged();
 	}
 
 	// Backボタンのクリック処理
 	public void OnClickBackButton() {
 		Hide();
-		if(Game.gameInstance.isPausing()) Game.gameInstance.Pause();
+		if(GameManager.Instance.isPausing()) GameManager.Instance.Pause();
 	}
 
 	// Topボタンのクリック処理
 	public void OnClickTopButton() {
 		Hide();
-		Game.Instance.Interrupt();
+		GameManager.Instance.Interrupt();
 	}
 
 	// Exitボタンのクリック処理

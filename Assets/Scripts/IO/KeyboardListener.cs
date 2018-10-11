@@ -10,7 +10,7 @@ public class KeyboardListener : MonoBehaviour {
 	public void ListenESC() {
 		if(!Input.GetKeyDown(KeyCode.Escape)) return;
 		
-		if(Game.Instance.isPlaying()) Game.Instance.Pause();
+		if(GameManager.Instance.isPlaying()) GameManager.Instance.Pause();
 		if(OptionsMenuUI.Instance.gameObject.activeSelf) OptionsMenuUI.Instance.Hide();
 		else OptionsMenuUI.Instance.Display();
 	}
@@ -18,6 +18,6 @@ public class KeyboardListener : MonoBehaviour {
 	public void ListenDF() {
 		if(!Input.GetKeyDown(KeyCode.D) && !Input.GetKeyDown(KeyCode.F)) return;
 		Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-		Game.Instance.Shot(mousePos);
+		GameManager.Instance.Shot(mousePos);
 	}
 }

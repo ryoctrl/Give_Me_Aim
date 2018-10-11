@@ -25,8 +25,11 @@ public class ExtendSongs : MonoBehaviour {
 		List<string> correctPaths = new List<string>();
 		foreach(string dir in pathes) {
 			string[] files = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
-			if(files.Contains(dir + "\\" + CHART_FILE) && 
-				(files.Contains(dir + "\\" + MOVIE_FILE) || files.Contains(dir + "\\" + MUSIC_FILE))) correctPaths.Add(dir);
+
+			for(int i = 0; i < files.Length; i++) files[i] =  files[i].Replace("\\", "/");
+
+			if(files.Contains(dir + "/" + CHART_FILE) && 
+				(files.Contains(dir + "/" + MOVIE_FILE) || files.Contains(dir + "/" + MUSIC_FILE))) correctPaths.Add(dir);
 		}
 	
 		return correctPaths;
