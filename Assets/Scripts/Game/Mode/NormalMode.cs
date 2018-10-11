@@ -4,22 +4,18 @@ using UnityEngine;
 
 public class NormalMode : AbstractGameMode {
 
-	// Use this for initialization
 	void Start () {
 		chart = gameObject.AddComponent(typeof(NormalChart)) as IChart;
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
 	public override void SongChange(){}
-	public override void Pause() {
+	public override void SetAutoMode(bool auto){}
+	public override void Pause() {}
+	public override void Play() {}
 
-	}
-	public override void Play() {
-
+	public override void Initialize() {
+		chart.Initialize();
+		GameManager.Instance.SetHealth(3);
 	}
 
 	public override void GameProcess() {
@@ -27,6 +23,10 @@ public class NormalMode : AbstractGameMode {
 	}
 
 	public override void Interrupt() {
+		chart.DeleteAllTargets();
+	}
+
+	public override void GameOver() {
 		chart.DeleteAllTargets();
 	}
 }

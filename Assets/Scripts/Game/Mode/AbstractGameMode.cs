@@ -10,19 +10,11 @@ public abstract class AbstractGameMode : MonoBehaviour, IGameMode {
 	public abstract void GameProcess();
 	public abstract void SongChange();
 	public abstract void Interrupt();
-
-
-	public void SetAutoMode(bool auto) {
-		chart.SetAutoMode(auto);
-	}
-
+	public abstract void Initialize();
+	public abstract void SetAutoMode(bool auto);
+	public abstract void GameOver();
 	
-
-	public void Initialize() {
-		chart.Initialize();
-	}
-
-	public void GameOver() {
-		chart.DeleteAllTargets();
+	void OnDestroy() {
+		Destroy(GetComponent<AbstractChart>());
 	}
 }

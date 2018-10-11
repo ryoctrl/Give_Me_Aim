@@ -14,6 +14,7 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 	private AudioSource audioSource;
 	private VideoPlayer video;
 	private AudioSource hitSound;
+	private bool initialized = false;
 
 
 	// Use this for initialization
@@ -26,13 +27,20 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 		autoToggle = GameObject.Find("AutoModeToggle").GetComponent<Toggle>();
 		songDropdown = GameObject.Find("SongDropdown").GetComponent<Dropdown>();
 		allInitialize();
+		initialized = true;
 		transform.gameObject.SetActive(false);
+	}
+
+	void OnEnable() {
+		if(!initialized) return;
+		otogeToggle.interactable = !GameManager.Instance.isPlaying();
+		autoToggle.interactable = !GameManager.Instance.isPlaying();
+		songDropdown.interactable = !GameManager.Instance.isPlaying();
 	}
 
 	private void allInitialize() {
 		volumeSlider.value = PlayerPrefs.GetInt(Consts.VOLUME_KEY, 50);
 		otogeToggle.isOn = PlayerPrefs.GetInt(Consts.OTOGE_KEY, 0) == 1;
-		
 		autoToggle.isOn = PlayerPrefs.GetInt(Consts.AUTO_KEY, 0) == 1;
 		autoToggle.interactable = otogeToggle.isOn;
 		songDropdown.ClearOptions();
@@ -48,9 +56,7 @@ public class OptionsMenuUI : SingletonMonoBehaviour<OptionsMenuUI> {
 		songDropdown.interactable = otogeToggle.isOn;
 	}
 
-
 	// 音量調節スライダの変更処理
-	// TODO: AudioMixerを調査する
 	public void OnValueChangedVolumeSlider() {
 		video.SetDirectAudioVolume(0, volumeSlider.value / 100);
 		audioSource.volume = volumeSlider.value / 100;

@@ -6,7 +6,6 @@ using UnityEngine;
 public class GameManager : SingletonMonoBehaviour<GameManager> {
 	public GameObject targetPrefab;
 	public GameObject guideLinePrefab;
-	public static GameObject guideLineNodePrefab;
 
 	///TargetをHitした回数
 	private int score;
@@ -35,6 +34,35 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 		gameMode.GameProcess();
 	}
 
+	public int GetHealth() {
+		return health;
+	}
+
+	public void SetHealth(int health) {
+		this.health = health;
+	}
+
+	public int GetShots() {
+		return shots;
+	}
+
+	public int GetScore() {
+		return score;
+	}
+
+	public GameObject GetTargetPrefab() {
+		return targetPrefab;
+	}
+
+	public List<Vector3> GetHitPositions() {
+		return hitPositions;
+	}
+
+	//ゲーム中か否か
+	public bool isPlaying() {
+		return playing;
+	}
+	
 
 	// クリックまたはD/Fキー入力処理
 	public void Shot(Vector3 shotPosition) {
@@ -45,12 +73,6 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 		hitTarget(hit);
 	}
 
-	
-
-	public void SetHealth(int health) {
-		this.health = health;
-	}
-	
 	//オートモード時の自動ターゲットヒット
 	public void Hit() {
 		hitSound.Play();
@@ -68,6 +90,8 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 	public void changeMode(bool otogeMode) {
 		if(playing) return;
 
+		Destroy(GetComponent<AbstractGameMode>());
+
 		if(otogeMode) gameMode = gameObject.AddComponent(typeof(OtogeMode)) as IGameMode;
 		else gameMode = gameObject.AddComponent(typeof(NormalMode)) as IGameMode;
 	}
@@ -75,13 +99,6 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 	//オートモードを設定
 	public void changeAutoMode(bool autoMode) {
 		gameMode.SetAutoMode(autoMode);
-	}
-
-	///
-	/// ゲーム中か否か
-	///
-	public bool isPlaying() {
-		return playing;
 	}
 
 	//ゲーム中断
@@ -116,30 +133,12 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 		gameMode.SongChange();
 	}
 
+	//ゲーム開始
 	public void GameStart() {
 		gameInitialize();
+		GameUI.Instance.UpdateHealth();
 		Timer.Instance.Begin();
 		playing = true;
-	}
-
-	public int GetHealth() {
-		return health;
-	}
-
-	public int GetShots() {
-		return shots;
-	}
-
-	public int GetScore() {
-		return score;
-	}
-
-	public GameObject GetTargetPrefab() {
-		return targetPrefab;
-	}
-
-	public List<Vector3> GetHitPositions() {
-		return hitPositions;
 	}
 
 	//ゲーム起動時にユーザー設定を初期化

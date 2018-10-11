@@ -20,14 +20,14 @@ public class GuidelineNode : MonoBehaviour {
 	private float now;
 	private SpriteRenderer sr;
 
-	// Use this for initialization
 	void Start () {
 		timer = 0;
 		sr = GetComponent<SpriteRenderer>();
 	}
 	
-	// Update is called once per frame
 	void Update () {
+		if(GameManager.Instance.isPausing()) return;
+		if(!GameManager.Instance.isPlaying()) Destroy(transform.gameObject);
 		if(isParent) now += Time.deltaTime;
 		if(isParent && startTime > now) return;
 		var c = sr.color;
@@ -46,7 +46,7 @@ public class GuidelineNode : MonoBehaviour {
 			int nextGuide = currentGuide + 1;
 			float t = (float)1 / numGuide * nextGuide;
 			Vector3 guidePos = Vector3.Lerp(prePos, newPos, t);
-			Instantiate(GameManager.guideLineNodePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(destroyTime, prePos, newPos, numGuide, nextGuide, false, 0, 0);
+			Instantiate(GameManager.Instance.guideLinePrefab, guidePos, Quaternion.identity).GetComponent<GuidelineNode>().setNodeInfo(destroyTime, prePos, newPos, numGuide, nextGuide, false, 0, 0);
 		}
 		Destroy(transform.gameObject);
 	}

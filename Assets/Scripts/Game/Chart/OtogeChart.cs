@@ -62,11 +62,9 @@ public class OtogeChart : AbstractChart {
 
 	public void SetTimingList(List<float> timingList) {
 		this.timingList = timingList;
-		Debug.Log("set timing list");
 	}
 
 	public override void Initialize() {
-		GameManager.Instance.SetHealth(300);
 		generated = 0;
 	}
 

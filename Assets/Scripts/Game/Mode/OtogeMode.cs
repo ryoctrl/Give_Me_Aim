@@ -11,15 +11,16 @@ public class OtogeMode : AbstractGameMode {
 	private float playInterval;
 	//背景
 	private SpriteRenderer background;
+	private delegate void Completed();
+	private List<Completed> completedMethods = new List<Completed>();
 	private bool ready = false;
 
-	// Use this for initialization
 	void Start () {
 		chart = gameObject.AddComponent(typeof(OtogeChart)) as IChart;
 		background = GameObject.Find("BackgroundImage").GetComponent<SpriteRenderer>();
-		Debug.Log("start");
 		LoadSong();
 		ready = true;
+		foreach(Completed c in completedMethods) c();
 	}
 
 	public override void GameProcess() {
@@ -38,6 +39,14 @@ public class OtogeMode : AbstractGameMode {
 		PlayContents();
 	}
 
+	public override void SetAutoMode(bool auto) {
+		if(!ready) {
+			completedMethods.Add(new Completed(() => {chart.SetAutoMode(auto);}));	
+		} else {
+			chart.SetAutoMode(auto);
+		}
+	}
+
 	public override void Pause() {
 		contentsPlayer.Pause();
 	}
@@ -47,9 +56,19 @@ public class OtogeMode : AbstractGameMode {
 		contentsPlayer.Stop();
 	}
 
+	public override void Initialize() {
+		chart.Initialize();
+		GameManager.Instance.SetHealth(300);
+	}
+
 	public override void SongChange(){
 		if(!ready) return;
 		LoadSong();
+	}
+
+	public override void GameOver() {
+		chart.DeleteAllTargets();
+		contentsPlayer.Stop();
 	}
 
 		//音ゲーモードの譜面を読み込む

@@ -29,8 +29,7 @@ public class ChartLoader{
 					
 				}
 			}
-			//if(hasInterval) playInterval = 3.0f;
-		}catch (Exception e) {
+		}catch (Exception e) {	
 			//Debug.Log(e);
 			//TODO: 例外処理
 		}

@@ -30,7 +30,7 @@ public class NormalChart : AbstractChart {
 	}
 
 	public override void Initialize() {
-		GameManager.Instance.SetHealth(3);
+
 		interval = 1f;
 		elapsed = 0f;
 	}

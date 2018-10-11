@@ -23,10 +23,13 @@ public class ExtendSongs : MonoBehaviour {
 
 		string[] pathes = Directory.GetDirectories(path, "*", System.IO.SearchOption.TopDirectoryOnly);
 		List<string> correctPaths = new List<string>();
-		foreach(string dir in pathes) {
+		foreach(string d in pathes) {
+			string dir = d.Replace("\\", "/");
 			string[] files = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
 
-			for(int i = 0; i < files.Length; i++) files[i] =  files[i].Replace("\\", "/");
+			for(int i = 0; i < files.Length; i++) {
+				files[i] =  files[i].Replace("\\", "/");
+			}
 
 			if(files.Contains(dir + "/" + CHART_FILE) && 
 				(files.Contains(dir + "/" + MOVIE_FILE) || files.Contains(dir + "/" + MUSIC_FILE))) correctPaths.Add(dir);
