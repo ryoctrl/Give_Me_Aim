@@ -23,19 +23,27 @@ public class ExtendSongs : MonoBehaviour {
 
 		string[] pathes = Directory.GetDirectories(path, "*", System.IO.SearchOption.TopDirectoryOnly);
 		List<string> correctPaths = new List<string>();
-		foreach(string dir in pathes) {
+		foreach(string d in pathes) {
+			string dir = d.Replace("\\", "/");
 			string[] files = Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly);
-			if(files.Contains(dir + "\\" + CHART_FILE) && 
-				(files.Contains(dir + "\\" + MOVIE_FILE) || files.Contains(dir + "\\" + MUSIC_FILE))) correctPaths.Add(dir);
+
+			for(int i = 0; i < files.Length; i++) {
+				files[i] =  files[i].Replace("\\", "/");
+			}
+
+			if(files.Contains(dir + "/" + CHART_FILE) && 
+				(files.Contains(dir + "/" + MOVIE_FILE) || files.Contains(dir + "/" + MUSIC_FILE))) correctPaths.Add(dir);
 		}
 	
 		return correctPaths;
 	}
 
+	public delegate void completedSetAudio();
+
 	///
 	/// 楽曲をAudoSourceにSet.
 	///
-	public static IEnumerator SetAudioSource(string songPath) {
+	public static IEnumerator SetAudioSource(string songPath, completedSetAudio callback) {
 		string url = "file://" + songPath + "\\" + MUSIC_FILE;
 
 		UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.WAV);
@@ -44,6 +52,7 @@ public class ExtendSongs : MonoBehaviour {
 
 		if(!www.isNetworkError) {
 			GameObject.Find("Audio Source").GetComponent<AudioSource>().clip = DownloadHandlerAudioClip.GetContent(www);
+			callback();
 		} else {
 			Debug.Log(www.error);
 		}

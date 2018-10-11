@@ -58,7 +58,7 @@ public class Target : MonoBehaviour {
 	/// 毎フレーム呼ばれる的への処理。
 	/// おおきさが変わったりする
 	void Update () {
-		if(isMaxSized && isResultTarget || Game.gameInstance.isPausing()) return;
+		if(isMaxSized && isResultTarget || GameManager.Instance.isPausing()) return;
 
 		Vector3 ls = transform.localScale;
 		speed = Time.deltaTime;
@@ -72,12 +72,15 @@ public class Target : MonoBehaviour {
 	
 		transform.localScale = ls;
 		if(ls.x >= targetSecond) {
-			if(autoMode && !isResultTarget) Game.gameInstance.autoTargetHit(this.transform.gameObject);
+			if(autoMode && !isResultTarget) {
+				GameManager.Instance.Hit();
+				Destroy(this.transform.gameObject);
+			}
 			isMaxSized = true;
 		}
 		else if(ls.x < 0.0f) {
 			Destroy(high.transform.parent.gameObject);
-			Game.gameInstance.miss();
+			GameManager.Instance.miss();
 		}
 	}
 
