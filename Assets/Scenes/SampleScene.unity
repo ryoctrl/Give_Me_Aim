@@ -2554,10 +2554,10 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 13.66, y: 7.68}
+  m_Size: {x: 10.24, y: 7.68}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!4 &983607103
@@ -3541,7 +3541,6 @@ MonoBehaviour:
     type: 2}
   guideLinePrefab: {fileID: 1296168598255014, guid: 61ce76354c1032c4a94929c98134b758,
     type: 2}
-  interval: 1
 --- !u!114 &1267638140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3627,7 +3626,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!224 &1299567596
 RectTransform:
@@ -3656,7 +3655,7 @@ RectTransform:
   - {fileID: 1917147449}
   - {fileID: 1995048483}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -5267,7 +5266,7 @@ RectTransform:
   - {fileID: 1715779650}
   - {fileID: 222970579}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
