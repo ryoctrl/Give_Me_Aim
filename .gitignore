@@ -36,3 +36,6 @@ sysinfo.txt
 *.unitypackage
 
 Build.zip
+ForWindows.zip
+ForWindows/
+songs/
