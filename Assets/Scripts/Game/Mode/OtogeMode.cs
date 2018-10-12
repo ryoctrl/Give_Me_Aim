@@ -24,7 +24,7 @@ public class OtogeMode : AbstractGameMode {
 	}
 
 	public override void GameProcess() {
-		if(Timer.Instance.GetTime() >= contentsPlayer.GetPlayTime() + playInterval) GameOver();
+		if(Timer.Instance.GetTime() >= contentsPlayer.GetPlayTime() + playInterval) GameManager.Instance.GameOver();
 		if(!contentsPlayer.IsPlaying()) PlayContents();
 
 		chart.ChartProcess();
