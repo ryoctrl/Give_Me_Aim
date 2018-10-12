@@ -68,9 +68,15 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 	public void Shot(Vector3 shotPosition) {
 		if(!playing) return;
 		shots++;
-		RaycastHit2D hit = Physics2D.Raycast(shotPosition, new Vector3(0, 0, 1), 100);
-		if(hit.collider == null) return;
-		hitTarget(hit);
+		RaycastHit2D rayHit = Physics2D.Raycast(shotPosition, new Vector3(0, 0, 1), 100);
+		if(rayHit.collider == null) return;
+
+		GameObject hitObject = rayHit.collider.transform.parent.gameObject;
+
+		hitObject.GetComponent<Target>().Hit();
+		hitPositions.Add(hitObject.transform.InverseTransformPoint(rayHit.point));
+
+		Hit();
 	}
 
 	//オートモード時の自動ターゲットヒット
@@ -168,15 +174,4 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 		shots = 0;
 	}
 
-	// 的をクリックしたときの処理
-	private void hitTarget(RaycastHit2D hit) {
-		//当たった的
-		GameObject target = hit.collider.transform.parent.gameObject;
-		//当たった場所
-		Vector3 hitPosition = target.transform.InverseTransformPoint(hit.point);
-		hitPositions.Add(hitPosition);
-		//Hit処理
-		Destroy(target);
-		Hit();
-	}
 }

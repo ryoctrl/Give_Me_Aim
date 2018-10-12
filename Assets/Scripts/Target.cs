@@ -105,4 +105,8 @@ public class Target : MonoBehaviour {
 	public void changeAutoMode() {
 		autoMode = true;
 	}
+
+	public void Hit() {
+		Destroy(transform.parent.gameObject);
+	}
 }
