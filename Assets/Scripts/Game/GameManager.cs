@@ -141,6 +141,17 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 		playing = true;
 	}
 
+	
+	// ゲーム終了処理
+	public void GameOver() {
+		playing = false;
+		gameMode.GameOver();
+
+		GameUI.Instance.Hide();
+		ResultUI.Instance.DisplayResult();
+		MainMenuUI.Instance.Display();
+	}
+
 	//ゲーム起動時にユーザー設定を初期化
 	private void SettingInitialize() {
 		changeMode(PlayerPrefs.GetInt(Consts.OTOGE_KEY, 0) == 1);
@@ -155,16 +166,6 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 
 		score = 0;
 		shots = 0;
-	}
-
-	// ゲーム終了処理
-	private void GameOver() {
-		playing = false;
-		gameMode.GameOver();
-
-		GameUI.Instance.Hide();
-		ResultUI.Instance.DisplayResult();
-		MainMenuUI.Instance.Display();
 	}
 
 	// 的をクリックしたときの処理
